@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Minuta de Reunión - Formulario</title>
+<style>
+  :root{ --b:#000; --g:#f6f6f6; }
+  *{ box-sizing:border-box }
+  body{ font-family: Arial, Helvetica, sans-serif; margin:24px; color:#111 }
+  /* Encabezado institucional */
+  .header{ display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
+  .header__logo{ width:90px; height:90px; object-fit:contain }
+  .header__text h1{ font-size:18px; margin:0; text-transform:uppercase; letter-spacing:.5px }
+  .header__text p{ margin:2px 0 0 0; font-size:12px }
+
+  .box{ border:2px solid var(--b); padding:10px }
+  .row{ display:grid; grid-template-columns:1fr 240px; gap:10px }
+  .lbl{ font-weight:bold; margin-bottom:6px }
+  .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:10px }
+  .cell{ border:2px solid var(--b); padding:8px }
+  .cell .lbl{ margin:0 0 6px 0 }
+
+  input[type="text"], input[type="date"], input[type="time"], select, textarea{
+    width:100%; padding:6px 8px; border:1px solid #333; border-radius:4px; font-size:14px;
+  }
+  textarea{ min-height:70px; resize:vertical }
+
+  /* Tabla participantes */
+  table{ width:100%; border-collapse:collapse; margin-top:8px }
+  th, td{ border:2px solid var(--b); padding:7px 8px; font-size:14px }
+  th{ text-align:center; background:var(--g) }
+  td.num{ width:40px; text-align:center }
+  td.area{ width:28% }
+  td.asistencia{ width:22%; }
+  /* Línea de firma en la celda Asistencia */
+  .firma-line{ height:30px; border-bottom:1px solid #000; margin:0 8px }
+  .firma-txt{ font-size:11px; text-align:center; color:#444; margin-top:2px }
+
+  .actions{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap }
+  .btn{ padding:10px 14px; border:0; border-radius:8px; cursor:pointer; font-weight:600; background:#0b4fb3; color:#fff }
+  .btn.secondary{ background:#555 }
+  .hint{ font-size:12px; color:#444 }
+
+  /* Modal */
+  dialog::backdrop{ background:rgba(0,0,0,.35) }
+  dialog{ border:0; border-radius:12px; padding:0; max-width:720px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
+  .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
+  .modal-body{ padding:10px 16px; max-height:60vh; overflow:auto }
+  .modal-foot{ padding:12px 16px; display:flex; gap:10px; justify-content:flex-end; background:#f1f1f1 }
+  .list{ display:grid; grid-template-columns:1fr 220px 120px; gap:8px; align-items:center }
+  .list.head{ font-weight:700; border-bottom:1px solid #ddd; padding-bottom:6px; margin-bottom:6px }
+  .pill{ font-size:12px; padding:2px 8px; border-radius:999px; background:#eef }
+  .srch{ display:flex; gap:8px; margin:8px 0 12px }
+  .srch input{ flex:1 }
+
+  /* Impresión */
+  @media print{
+    .actions, .hint, #btnAbrirModal{ display:none!important }
+    input, select, textarea { border:0; padding:0; outline:0 }
+    .cell, .box, th, td { border:1px solid #000 }
+    body{ margin:10mm }
+    .header{ border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px }
+  }
+</style>
+</head>
+<body>
+
+<!-- Encabezado -->
+<section class="header">
+  <img class="header__logo" src="logo.png" alt="Logo">
+  <div class="header__text">
+    <h1>COOPERATIVA ACREIMEX</h1>
+    <p>Coordinación de Recuperación Preventiva y Administrativa</p>
+    <p class="hint">Formato de Minuta de Reunión</p>
+  </div>
+</section>
+
+<!-- Fila Objetivo / Fecha -->
+<div class="row">
+  <div class="box">
+    <div class="lbl">Objetivo:</div>
+    <input type="text" id="objetivo" placeholder="Describir el objetivo de la reunión...">
+  </div>
+  <div class="box">
+    <div class="lbl">Fecha:</div>
+    <input type="date" id="fecha">
+  </div>
+</div>
+
+<!-- Fila Sucursal (en lugar de “Lugar”) / Horarios / Convoca -->
+<div class="inline">
+  <div class="cell">
+    <div class="lbl">Sucursal:</div>
+    <select id="sucursalSelect" disabled>
+      <option value="">Cargando sucursales…</option>
+    </select>
+  </div>
+
+  <div class="cell">
+    <div class="lbl">Hora inicio</div>
+    <input type="time" id="horaInicio">
+  </div>
+  <div class="cell">
+    <div class="lbl">Hora fin</div>
+    <input type="time" id="horaFin">
+  </div>
+
+  <div class="cell">
+    <div class="lbl">Convoca:</div>
+    <!-- datalist = filtro escribible + opciones -->
+    <input id="convoca" list="convocaList" placeholder="Selecciona o escribe…" autocomplete="off">
+    <datalist id="convocaList"></datalist>
+  </div>
+</div>
+
+<!-- Botón abrir lista de personal de la sucursal -->
+<div class="actions" style="margin-top:10px">
+  <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
+  <span class="hint">El selector de sucursal se alimenta del JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
+</div>
+
+<!-- Participantes -->
+<div class="box" style="margin-top:12px">
+  <div class="lbl" style="margin-bottom:6px">Participantes:</div>
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th style="width:40px">#</th>
+        <th>Nombre</th>
+        <th>Área</th><!-- Aquí se coloca el PUESTO -->
+        <th>Asistencia</th><!-- Firma -->
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="actions">
+  <button class="btn" onclick="window.print()">Imprimir</button>
+  <button class="btn secondary" id="btnLimpiarTabla">Limpiar participantes</button>
+</div>
+
+<!-- Modal para elegir asistentes -->
+<dialog id="modal">
+  <div class="modal-head">Seleccionar asistentes</div>
+  <div class="modal-body">
+    <div class="srch">
+      <input id="buscar" type="text" placeholder="Buscar por nombre o puesto…">
+      <span class="pill" id="cuentaSeleccionados">0 seleccionados</span>
+    </div>
+    <div class="list head">
+      <div>Nombre</div><div>Puesto</div><div>Incluir</div>
+    </div>
+    <div id="contenedorPersonal"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn secondary" id="cerrarModal">Cancelar</button>
+    <button class="btn" id="confirmarSeleccion">Agregar a la minuta</button>
+  </div>
+</dialog>
+
+<script>
+/* ====== RUTA DEL JSON DE PERSONAL POR SUCURSAL ====== */
+const DATA_URL =
+  "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
+
+/* ====== LISTA “CONVOCA” (nombre + puesto) ====== */
+const CONVOCA_LIST = [
+  ["SANDRA LORENA PACHECO ROBLES","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["ROLANDO VALERIANO HURTADO","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["ANDREA ACELA MORGA  DÁVILA","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["GUSTAVO ESTUDILLO DE LA CRUZ","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["ZOIBETH YANELI SORIANO IBAÑEZ","ASISTENTE DE RECUPERACIÓN PREVENTIVA Y ADMINISTRATIVA"],
+  ["ABEL EDUARDO JIMENEZ GASPAR","ASISTENTE DE RECUPERACIÓN PREVENTIVA Y ADMINISTRATIVA"],
+  ["DANIEL SÁNCHEZ DÍAZ","COORDINADOR DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["FRANCISCO ANTONIO PÉREZ RODRIGUEZ","COORDINADOR DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["ROBERTO JAVIER PÉREZ SANTIAGO","COORDINADOR DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["INÉS ANDRADE  MÉNDEZ","COORDINADOR DE RECUPERACIÓN EXTRAJUDICIAL"],
+  ["ALFONSO  JERÓNIMO HERNÁNDEZ","COORDINADOR DE RECUPERACIÓN PREVENTIVA Y ADMINISTRATIVA"],
+  ["FRANCISCO DAMIAN MARTIN CORONADO","ANALISTA DE CRÉDITOS AGRONEGOCIOS REGIONAL"],
+  ["VIRGINIA ESTEPHANIA CISNEROS TRUJILLO","COORDINADOR DE CRÉDITO REGIONAL"],
+  ["ALONSO CANCHE CASTILLO","COORDINADOR DE RECUPERACIÓN REGIONAL"],
+  ["IVANI LAINES ARCOS","GESTOR DE RECUPERACIÓN REGIONAL"],
+  ["SUEMY ANAHÍ RUIZ ORDOÑEZ","PROMOTOR DE CAPTACIÓN REGIONAL"],
+  ["ARACELLY BEATRIZ CUTIZ CAUICH","PROMOTOR DE CRÉDITO REGIONAL"],
+  ["JORGE FRANCISCO SUASTE KU","PROMOTOR DE CRÉDITO REGIONAL"],
+  ["MARIA LOURDES CAUICH MAY","SUPERVISOR DE SUCURSALES REGIONAL"]
+];
+
+/* ====== Referencias UI ====== */
+const tbody = document.getElementById('tbody');
+const modal = document.getElementById('modal');
+const contPersonal = document.getElementById('contenedorPersonal');
+const buscar = document.getElementById('buscar');
+const cuenta = document.getElementById('cuentaSeleccionados');
+const sucSel = document.getElementById('sucursalSelect');
+const btnAbrirModal = document.getElementById('btnAbrirModal');
+const btnLimpiarTabla = document.getElementById('btnLimpiarTabla');
+const horaInicio = document.getElementById('horaInicio');
+const horaFin = document.getElementById('horaFin');
+const convocaInput = document.getElementById('convoca');
+const convocaList = document.getElementById('convocaList');
+
+/* ====== Helpers ====== */
+function crearFilasVacias(n=9){
+  tbody.innerHTML = '';
+  for(let i=1;i<=n;i++){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="num">${i}.</td>
+      <td class="nombre"></td>
+      <td class="area"></td>
+      <td class="asistencia">
+        <div class="firma-line"></div>
+        <div class="firma-txt">Firma</div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+crearFilasVacias();
+
+function titleCase(s=''){
+  return s.toLowerCase().replace(/\b([\p{L}\p{M}]+)/gu, w => w.charAt(0).toUpperCase()+w.slice(1));
+}
+
+function addMinutesToTimeStr(hhmm, minutes){
+  if(!hhmm) return '';
+  const [h,m] = hhmm.split(':').map(x=>parseInt(x||'0',10));
+  let total = h*60 + m + minutes;
+  total = (total + 1440) % 1440;
+  const hh = String(Math.floor(total/60)).padStart(2,'0');
+  const mm = String(total%60).padStart(2,'0');
+  return `${hh}:${mm}`;
+}
+
+/* ====== Autocompletar Hora Fin (+1h) ====== */
+horaInicio.addEventListener('change', ()=>{
+  const val = horaInicio.value;
+  if(val){
+    horaFin.value = addMinutesToTimeStr(val, 60);
+  }
+});
+
+/* ====== Poblar datalist “Convoca” ====== */
+function poblarConvoca(){
+  convocaList.innerHTML = '';
+  CONVOCA_LIST.forEach(([nombre, puesto])=>{
+    const opt = document.createElement('option');
+    opt.value = `${nombre}`;
+    opt.label = `${nombre} — ${puesto}`;
+    convocaList.appendChild(opt);
+  });
+}
+poblarConvoca();
+
+/* ====== Cargar JSON y agrupar por SUCURSAL ====== */
+let personasPorSucursal = {}; // { 'ETLA': [{nombre, puesto}], ... }
+let listaActual = []; // para modal
+
+async function cargarJSON(){
+  try{
+    const res = await fetch(DATA_URL, {cache:'no-store'});
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+    personasPorSucursal = {};
+    arr.forEach(row=>{
+      const suc = (row.SUCURSAL || row.sucursal || '').toString().trim();
+      const nom = (row.NOMBRECOMPLETO || row.nombre || row.NOMBRE || '').toString().trim();
+      const puesto = (row.PUESTO || row.puesto || row.AREA || '').toString().trim();
+      if(!suc || !nom) return;
+      if(!personasPorSucursal[suc]) personasPorSucursal[suc] = [];
+      personasPorSucursal[suc].push({ nombre: nom, puesto, raw: row });
+    });
+
+    // Poblar SELECT de sucursal
+    sucSel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
+    Object.keys(personasPorSucursal).sort((a,b)=>a.localeCompare(b,'es'))
+      .forEach(suc=>{
+        const opt = document.createElement('option');
+        opt.value = suc;
+        opt.textContent = suc;
+        sucSel.appendChild(opt);
+      });
+
+    sucSel.disabled = false;
+    btnAbrirModal.disabled = false;
+  }catch(e){
+    console.error(e);
+    sucSel.innerHTML = `<option value="">No se pudo cargar el JSON</option>`;
+  }
+}
+cargarJSON();
+
+/* ====== Modal con personal de la sucursal ====== */
+function renderLista(personas){
+  listaActual = personas.map((p,idx)=> ({...p, idx, checked:false}));
+  applyFilter('');
+}
+
+function applyFilter(q){
+  const txt = (q||'').toLowerCase().trim();
+  contPersonal.innerHTML = '';
+  listaActual.forEach(item=>{
+    const nombre = item.nombre || '';
+    const puesto = item.puesto || '';
+    const ok = !txt || nombre.toLowerCase().includes(txt) || puesto.toLowerCase().includes(txt);
+    if(!ok) return;
+    const row = document.createElement('div');
+    row.className = 'list';
+    row.innerHTML = `
+      <div>${titleCase(nombre)}</div>
+      <div>${puesto}</div>
+      <div style="text-align:center">
+        <input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}>
+      </div>
+    `;
+    contPersonal.appendChild(row);
+  });
+  cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
+}
+
+document.getElementById('buscar')?.addEventListener('input', e=> applyFilter(e.target.value));
+
+contPersonal.addEventListener('change', (e)=>{
+  const idx = +e.target.getAttribute('data-idx');
+  const it = listaActual.find(x=>x.idx===idx);
+  if(it){ it.checked = e.target.checked; }
+  cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
+});
+
+/* Abrir modal */
+btnAbrirModal.addEventListener('click', ()=>{
+  const suc = sucSel.value;
+  if(!suc){ alert('Primero selecciona una sucursal.'); return; }
+  const personas = personasPorSucursal[suc] || [];
+  if(personas.length===0){ alert('Esta sucursal no tiene personal en el JSON.'); return; }
+  renderLista(personas);
+  try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
+});
+
+/* Cerrar modal */
+document.getElementById('cerrarModal').addEventListener('click', ()=>{
+  try{ modal.close(); }catch{ modal.removeAttribute('open'); }
+});
+
+/* Confirmar -> Llenar tabla (Nombre / Puesto / Firma) */
+document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
+  const sel = listaActual.filter(x=>x.checked);
+  if(sel.length===0){ alert('Selecciona al menos una persona.'); return; }
+  const total = Math.max(9, sel.length);
+  crearFilasVacias(total);
+
+  const filas = [...tbody.querySelectorAll('tr')];
+  sel.forEach((p,i)=>{
+    const tds = filas[i].children;
+    tds[1].textContent = titleCase(p.nombre);
+    tds[2].textContent = p.puesto || '';
+  });
+
+  try{ modal.close(); }catch{ modal.removeAttribute('open'); }
+});
+
+/* Limpiar tabla */
+btnLimpiarTabla.addEventListener('click', ()=> crearFilasVacias());
+
+/* Fecha de hoy por defecto */
+document.getElementById('fecha').valueAsDate = new Date();
+</script>
+</body>
+</html>
