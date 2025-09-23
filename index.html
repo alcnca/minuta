@@ -9,9 +9,9 @@
   *{ box-sizing:border-box }
   body{ font-family: Arial, Helvetica, sans-serif; margin:24px; color:#111 }
 
-  /* Encabezado */
-  .header{ display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
-  .header__logo{ width:90px; height:90px; object-fit:contain }
+  /* Encabezado con tu logo */
+  .header{ display:grid; grid-template-columns:120px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
+  .header__logo{ width:115px; height:90px; object-fit:contain }
   .header__text h1{ font-size:18px; margin:0; text-transform:uppercase; letter-spacing:.5px }
   .header__text p{ margin:2px 0 0 0; font-size:12px }
 
@@ -38,10 +38,7 @@
 
   /* Firma autógrafa alta */
   td.asistencia{ padding:0 }
-  .firma-box{
-    height:100%; display:flex; flex-direction:column; justify-content:flex-end;
-    min-height:90px;
-  }
+  .firma-box{ height:100%; display:flex; flex-direction:column; justify-content:flex-end; min-height:95px; }
   .firma-line{ border-top:1px solid #000; margin:0 12px 6px 12px; }
   .firma-txt{ font-size:11px; text-align:center; color:#444; margin:0 0 6px 0 }
 
@@ -53,11 +50,11 @@
 
   /* === Modales === */
   dialog::backdrop{ background:rgba(0,0,0,.35) }
-  dialog{ border:0; border-radius:12px; padding:0; max-width:720px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
+  dialog{ border:0; border-radius:12px; padding:0; max-width:760px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
   .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
   .modal-body{ padding:10px 16px; max-height:60vh; overflow:auto }
   .modal-foot{ padding:12px 16px; display:flex; gap:10px; justify-content:flex-end; background:#f1f1f1 }
-  .list{ display:grid; grid-template-columns:1fr 220px 120px; gap:8px; align-items:center }
+  .list{ display:grid; grid-template-columns:1fr 240px 120px; gap:8px; align-items:center }
   .list.head{ font-weight:700; border-bottom:1px solid #ddd; padding-bottom:6px; margin-bottom:6px }
   .pill{ font-size:12px; padding:2px 8px; border-radius:999px; background:#eef }
   .srch{ display:flex; gap:8px; margin:8px 0 12px }
@@ -71,39 +68,46 @@
   .tabla-od .num{ width:44px; text-align:center }
   .tabla-od .tema{ text-transform:uppercase }
 
-  /* === Actividades (cuadro siguiente) === */
+  /* === Actividades (último cuadro) === */
   .act-box{ border:2px solid #000; margin-top:14px; }
   .act-title{ font-weight:bold; padding:6px 8px; border-bottom:2px solid #000; text-transform:uppercase; }
   .panel{ border-top:2px solid #000; }
   .panel:first-of-type{ border-top:0 }
-  .panel-title{ padding:6px 8px; font-weight:bold; text-transform:uppercase; }
-  .panel-body{ padding:6px 8px; min-height:48px; outline:none; }
-  .panel-body[contenteditable="true"]:empty:before{
-    content: attr(data-placeholder); color:#777;
-  }
-  .proxima{
-    margin-top:10px; display:grid; grid-template-columns:160px 1fr; border:2px solid #000;
-  }
+  .panel-head{ display:flex; align-items:center; gap:8px; padding:6px 8px }
+  .panel-title{ font-weight:bold; text-transform:uppercase }
+  /* MISMO TAMAÑO EN TODO EL CUADRO */
+  .act-box, .act-box *{ font-size:13px; }
+  .panel-body{ padding:6px 8px; min-height:48px; outline:none; white-space:pre-wrap }
+  .panel-body[contenteditable="true"]:empty:before{ content: attr(data-placeholder); color:#777; }
+  .panel .tool{ margin-left:auto }
+
+  /* Próxima reunión */
+  .proxima{ margin-top:10px; display:grid; grid-template-columns:160px 1fr; border:2px solid #000; align-items:center }
   .proxima .lbl{ border-right:2px solid #000; padding:6px 8px }
-  .proxima .val{ padding:6px 8px; min-height:32px; outline:none }
-  .proxima .val[contenteditable="true"]:empty:before{ content:"FECHA POR DEFINIR"; color:#777 }
+  .proxima .val{ padding:4px 8px }
+
+  /* Pie de página con tu imagen */
+  .footer{ margin-top:24px; }
+  .footer img{ width:100%; max-height:90px; object-fit:contain }
 
   /* Impresión */
   @media print{
-    .actions, .hint, #btnAbrirModal, #btnObjetivo, #agregarTema, #btnInsertarPlantilla, #tipoReunion { display:none!important }
+    .actions, .hint, #btnAbrirModal, #btnObjetivo, #agregarTema, #btnInsertarPlantilla, #tipoReunion,
+    .tool { display:none!important }
     input, select, textarea { border:0; padding:0; outline:0 }
-    .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
+    .cell, .box, th, td, .act-box, .proxima{ border:1px solid #000 }
     .header{ border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px }
     .firma-box{ min-height:28mm }
-    .act-box, .panel, .proxima{ break-inside:avoid; page-break-inside:avoid }
+    body{ margin-bottom:38mm }         /* espacio para el pie fijo */
+    .footer-fixed{ position:fixed; left:0; right:0; bottom:0; }
   }
 </style>
 </head>
 <body>
 
-<!-- Encabezado -->
+<!-- Encabezado con logo -->
 <section class="header">
-  <img class="header__logo" src="logo.png" alt="Logo">
+  <img class="header__logo" src="https://raw.githubusercontent.com/alcnca/minuta/main/encabezado.png" alt="Logo">
   <div class="header__text">
     <h1>COOPERATIVA ACREIMEX</h1>
     <p>Coordinación de Recuperación Preventiva y Administrativa</p>
@@ -130,9 +134,7 @@
 <div class="inline">
   <div class="cell">
     <div class="lbl">Sucursal:</div>
-    <select id="sucursalSelect" disabled>
-      <option value="">Cargando sucursales…</option>
-    </select>
+    <select id="sucursalSelect" disabled><option value="">Cargando sucursales…</option></select>
   </div>
   <div class="cell">
     <div class="lbl">Hora inicio</div>
@@ -152,23 +154,16 @@
 <!-- Botones asistentes -->
 <div class="actions" style="margin-top:10px">
   <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
-  <span class="hint">Selector alimentado desde JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
+  <span class="hint">El selector se alimenta desde el JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
 </div>
 
 <!-- Participantes -->
 <div class="box" style="margin-top:12px">
   <div class="lbl" style="margin-bottom:6px">Participantes:</div>
   <table id="tabla">
-    <colgroup>
-      <col class="col-num"><col><col><col class="col-firma">
-    </colgroup>
+    <colgroup><col class="col-num"><col><col><col class="col-firma"></colgroup>
     <thead>
-      <tr>
-        <th>#</th>
-        <th>Nombre</th>
-        <th>Área</th>
-        <th>Asistencia</th>
-      </tr>
+      <tr><th>#</th><th>Nombre</th><th>Área</th><th>Asistencia</th></tr>
     </thead>
     <tbody id="tbody"></tbody>
   </table>
@@ -185,14 +180,12 @@
     <tr><td class="num">4.</td><td class="tema" contenteditable="true">CIERRE Y FIRMA DE ASISTENCIA Y COMPROMISOS DE LOS ASISTENTES</td></tr>
   </tbody>
 </table>
-<div class="actions">
-  <button class="btn small" id="agregarTema">+ Agregar tema</button>
-</div>
+<div class="actions"><button class="btn small" id="agregarTema">+ Agregar tema</button></div>
 
-<!-- === PLANTILLAS + CUADRO SIGUIENTE === -->
+<!-- PLANTILLAS + ÚLTIMO CUADRO -->
 <div class="actions" style="margin-top:10px">
   <select id="tipoReunion">
-    <option value="capacitacion">Capacitación (como ejemplo de la imagen)</option>
+    <option value="capacitacion">Capacitación</option>
     <option value="seguimiento">Seguimiento de recuperación</option>
     <option value="general">Reunión general de sucursal</option>
     <option value="capacitacion_compromisos">Capacitación + compromisos</option>
@@ -202,20 +195,25 @@
 
 <section class="act-box" id="actBox">
   <div class="act-title" id="actTitulo">ACTIVIDADES REALIZADAS Y PUNTOS RELEVANTES</div>
-  <!-- Paneles se llenan por JS con la plantilla seleccionada -->
   <div id="actContenido"></div>
 </section>
 
+<!-- Próxima reunión con calendario -->
 <div class="proxima" style="margin-top:8px">
   <div class="lbl"><strong>Próxima Reunión:</strong></div>
-  <div class="val" id="proxReunion" contenteditable="true"></div>
+  <div class="val"><input type="date" id="proxReunionDate"></div>
 </div>
 
 <div class="actions">
   <button class="btn" onclick="window.print()">Imprimir</button>
 </div>
 
-<!-- Modal asistentes -->
+<!-- Pie de página -->
+<div class="footer footer-fixed">
+  <img src="https://raw.githubusercontent.com/alcnca/minuta/main/piepagina.png" alt="Pie de página">
+</div>
+
+<!-- Modal asistentes (tabla principal) -->
 <dialog id="modal">
   <div class="modal-head">Seleccionar asistentes</div>
   <div class="modal-body">
@@ -223,9 +221,7 @@
       <input id="buscar" type="text" placeholder="Buscar por nombre o puesto…">
       <span class="pill" id="cuentaSeleccionados">0 seleccionados</span>
     </div>
-    <div class="list head">
-      <div>Nombre</div><div>Puesto</div><div>Incluir</div>
-    </div>
+    <div class="list head"><div>Nombre</div><div>Puesto</div><div>Incluir</div></div>
     <div id="contenedorPersonal"></div>
   </div>
   <div class="modal-foot">
@@ -246,11 +242,28 @@
   </div>
 </dialog>
 
+<!-- Modal para elegir ASESORES (panel acompañamiento) -->
+<dialog id="modalAsesores">
+  <div class="modal-head">Elegir asesores de la sucursal</div>
+  <div class="modal-body">
+    <div class="srch">
+      <input id="buscarAsesor" type="text" placeholder="Buscar asesor…">
+      <span class="pill" id="cuentaAsesores">0 seleccionados</span>
+    </div>
+    <div class="list head"><div>Nombre</div><div>Puesto</div><div>Incluir</div></div>
+    <div id="contenedorAsesores"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn secondary" id="cerrarAsesores">Cancelar</button>
+    <button class="btn" id="confirmarAsesores">Insertar en viñetas</button>
+  </div>
+</dialog>
+
 <script>
-/* ====== RUTA DEL JSON ====== */
+/* ====== URLs de datos e imágenes ====== */
 const DATA_URL = "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
 
-/* ====== LISTA “CONVOCA” ====== */
+/* ====== Lista CONVOCA ====== */
 const CONVOCA_LIST = [
   ["SANDRA LORENA PACHECO ROBLES","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
   ["ROLANDO VALERIANO HURTADO","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
@@ -292,6 +305,7 @@ const tipoReunion = document.getElementById('tipoReunion');
 const btnInsertarPlantilla = document.getElementById('btnInsertarPlantilla');
 const actTitulo = document.getElementById('actTitulo');
 const actContenido = document.getElementById('actContenido');
+const proxDate = document.getElementById('proxReunionDate');
 
 /* ====== Helpers ====== */
 function crearFilas(n){
@@ -307,8 +321,7 @@ function crearFilas(n){
           <div class="firma-line"></div>
           <p class="firma-txt">Firma</p>
         </div>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   }
 }
@@ -326,20 +339,41 @@ function addMinutesToTimeStr(hhmm, minutes){
 horaInicio.addEventListener('change', ()=> {
   if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }
 });
-/* Convoca datalist */
+
+/* Convoca datalist (mostrar NOMBRE — PUESTO) */
 function poblarConvoca(){
   convocaList.innerHTML = '';
   CONVOCA_LIST.forEach(([nombre, puesto])=>{
-    const texto = `${nombre} — ${puesto}`.toUpperCase();
-    const opt = document.createElement('option');
-    opt.value = texto;
-    convocaList.appendChild(opt);
+    const val = `${nombre} — ${puesto}`.toUpperCase();
+    const opt = document.createElement('option'); opt.value = val; convocaList.appendChild(opt);
   });
 }
 poblarConvoca();
 convocaInput.addEventListener('input', ()=> {
   convocaInput.value = convocaInput.value.toUpperCase();
-  convocaInput.title = convocaInput.value;
+  convocaInput.title = convocaInput.value;  // tooltip con el texto completo
+});
+
+/* Fecha hoy y próxima reunión (+2 meses) */
+function addMonths(date, m){
+  const d = new Date(date.getTime());
+  d.setMonth(d.getMonth() + m);
+  // ajusta fin de mes
+  if(d.getDate() !== date.getDate()) d.setDate(0);
+  return d;
+}
+function dateToInput(d){ return d.toISOString().slice(0,10); }
+
+const now = new Date();
+document.getElementById('fecha').valueAsDate = now;
+proxDate.value = dateToInput(addMonths(now, 2));
+let proxDateEdited = false;
+proxDate.addEventListener('input', ()=> proxDateEdited = true);
+document.getElementById('fecha').addEventListener('input', e=>{
+  if(!proxDateEdited){
+    const base = new Date(e.target.value || new Date());
+    proxDate.value = dateToInput(addMonths(base, 2));
+  }
 });
 
 /* Cargar JSON y agrupar por sucursal */
@@ -361,19 +395,14 @@ async function cargarJSON(){
     sucSel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
     Object.keys(personasPorSucursal).sort((a,b)=>a.localeCompare(b,'es'))
       .forEach(suc=>{
-        const opt = document.createElement('option');
-        opt.value = suc; opt.textContent = suc;
-        sucSel.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = suc; opt.textContent = suc; sucSel.appendChild(opt);
       });
     btnAbrirModal.disabled = false; sucSel.disabled = false;
-  }catch(e){
-    console.error(e);
-    sucSel.innerHTML = `<option value="">No se pudo cargar el JSON</option>`;
-  }
+  }catch(e){ console.error(e); sucSel.innerHTML = `<option value="">No se pudo cargar el JSON</option>`; }
 }
 cargarJSON();
 
-/* Modal asistentes */
+/* Modal asistentes (tabla principal) */
 function renderLista(personas){
   listaActual = personas.map((p,idx)=> ({...p, idx, checked:false}));
   applyFilter('');
@@ -382,19 +411,15 @@ function applyFilter(q){
   const txt = (q||'').toLowerCase().trim();
   contPersonal.innerHTML = '';
   listaActual.forEach(item=>{
-    const nombre = item.nombre || '';
-    const puesto = item.puesto || '';
+    const {nombre='', puesto=''} = item;
     const ok = !txt || nombre.toLowerCase().includes(txt) || puesto.toLowerCase().includes(txt);
     if(!ok) return;
     const row = document.createElement('div');
     row.className = 'list';
     row.innerHTML = `
-      <div>${(nombre || '').toUpperCase()}</div>
+      <div>${nombre.toUpperCase()}</div>
       <div>${puesto}</div>
-      <div style="text-align:center">
-        <input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}>
-      </div>
-    `;
+      <div style="text-align:center"><input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}></div>`;
     contPersonal.appendChild(row);
   });
   cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
@@ -414,9 +439,7 @@ btnAbrirModal.addEventListener('click', ()=>{
   renderLista(personas);
   try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
 });
-document.getElementById('cerrarModal').addEventListener('click', ()=>{
-  try{ modal.close(); }catch{ modal.removeAttribute('open'); }
-});
+document.getElementById('cerrarModal').addEventListener('click', ()=> { try{ modal.close(); }catch{ modal.removeAttribute('open'); } });
 document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const sel = listaActual.filter(x=>x.checked);
   if(sel.length===0){ alert('Selecciona al menos una persona.'); return; }
@@ -435,9 +458,7 @@ document.getElementById('btnObjetivo').addEventListener('click', ()=>{
   objetivoInput.value = objetivoView.value;
   try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); }
 });
-document.getElementById('cancelObjetivo').addEventListener('click', ()=>{
-  try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
-});
+document.getElementById('cancelObjetivo').addEventListener('click', ()=> { try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
 document.getElementById('saveObjetivo').addEventListener('click', ()=>{
   objetivoView.value = (objetivoInput.value || '').toUpperCase();
   try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
@@ -452,69 +473,186 @@ document.getElementById('agregarTema').addEventListener('click', ()=>{
   tb.appendChild(tr);
 });
 
-/* ====== Plantillas del “cuadro siguiente” ====== */
+/* ====== Plantillas del último cuadro ====== */
 const PLANTILLAS = {
   capacitacion: {
     titulo: "ACTIVIDADES REALIZADAS Y PUNTOS RELEVANTES RESPECTO A LA CAPACITACIÓN",
     paneles: [
-      ["FECHA DE VISITA:", ""],
-      ["ACOMPAÑAMIENTO EN CAMPO A LOS ASESORES:", "✤ FERNANDO\n✤ JAZMÍN"],
-      ["SE DETECTARON LAS SIGUIENTES INCIDENCIAS:", "✤ …"],
-      ["SE REALIZA LA CAPACITACIÓN CORRESPONDIENTE EL DÍA DE HOY REFORZANDO LOS SIGUIENTES TEMAS:", "✤ …"],
-      ["SE REALIZAN LAS SIGUIENTES RECOMENDACIONES:", "✤ …\n✤ …\n✤ …"],
-      ["SE CUESTIONÓ SI EXISTE ALGUNA DUDA O PROPUESTA RESPECTO AL TEMA:", "✤ …"],
-      ["SE ESTABLECIERON LOS SIGUIENTES COMPROMISOS:", "✤ …\n✤ …\n✤ …"]
+      {key:"fechaVisita", titulo:"FECHA DE VISITA:", tipo:"fecha"},
+      {key:"acompanamiento", titulo:"ACOMPAÑAMIENTO EN CAMPO A LOS ASESORES:", tipo:"viñetas_asesores"},
+      {titulo:"SE DETECTARON LAS SIGUIENTES INCIDENCIAS:", tipo:"viñetas"},
+      {titulo:"SE REALIZA LA CAPACITACIÓN CORRESPONDIENTE EL DÍA DE HOY REFORZANDO LOS SIGUIENTES TEMAS:", tipo:"viñetas"},
+      {titulo:"SE REALIZAN LAS SIGUIENTES RECOMENDACIONES:", tipo:"viñetas"},
+      {titulo:"SE CUESTIONÓ SI EXISTE ALGUNA DUDA O PROPUESTA RESPECTO AL TEMA:", tipo:"viñetas"},
+      {titulo:"SE ESTABLECIERON LOS SIGUIENTES COMPROMISOS:", tipo:"viñetas"}
     ]
   },
   seguimiento: {
     titulo: "ACTIVIDADES Y PUNTOS RELEVANTES DE SEGUIMIENTO A RECUPERACIÓN",
     paneles: [
-      ["FECHA DE VISITA / REUNIÓN:", ""],
-      ["ANÁLISIS DE CARTERA (BANDAS/ANTIGÜEDAD):", "✤ …"],
-      ["GESTIONES REALIZADAS POR LOS ASESORES:", "✤ Llamadas registradas\n✤ Visitas efectuadas\n✤ Convenios establecidos"],
-      ["INCIDENCIAS / BLOQUEOS:", "✤ …"],
-      ["ACUERDOS Y RESPONSABLES:", "✤ … (nombre / fecha)"]
+      {key:"fechaVisita", titulo:"FECHA DE VISITA / REUNIÓN:", tipo:"fecha"},
+      {titulo:"ANÁLISIS DE CARTERA (BANDAS/ANTIGÜEDAD):", tipo:"viñetas"},
+      {titulo:"GESTIONES REALIZADAS POR LOS ASESORES:", tipo:"viñetas"},
+      {titulo:"INCIDENCIAS / BLOQUEOS:", tipo:"viñetas"},
+      {titulo:"ACUERDOS Y RESPONSABLES:", tipo:"viñetas"}
     ]
   },
   general: {
     titulo: "ACTIVIDADES Y PUNTOS RELEVANTES DE LA REUNIÓN",
     paneles: [
-      ["RESUMEN:", ""],
-      ["TEMAS TRATADOS:", "✤ …\n✤ …"],
-      ["ACUERDOS:", "✤ …\n✤ …"],
-      ["PENDIENTES:", "✤ …"]
+      {key:"fechaVisita", titulo:"FECHA DE REUNIÓN:", tipo:"fecha"},
+      {titulo:"TEMAS TRATADOS:", tipo:"viñetas"},
+      {titulo:"ACUERDOS:", tipo:"viñetas"},
+      {titulo:"PENDIENTES:", tipo:"viñetas"}
     ]
   },
   capacitacion_compromisos: {
     titulo: "CAPACITACIÓN Y COMPROMISOS",
     paneles: [
-      ["TEMARIO:", "✤ …"],
-      ["RECOMENDACIONES:", "✤ …"],
-      ["COMPROMISOS:", "✤ …\n✤ …"]
+      {key:"fechaVisita", titulo:"FECHA:", tipo:"fecha"},
+      {titulo:"TEMARIO:", tipo:"viñetas"},
+      {titulo:"RECOMENDACIONES:", tipo:"viñetas"},
+      {titulo:"COMPROMISOS:", tipo:"viñetas"}
     ]
   }
 };
+
+function seedBullet(div){
+  if(div.innerText.trim()==="") div.innerHTML = "✤ ";
+}
+
+function attachBulletBehavior(div){
+  seedBullet(div);
+  div.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      document.execCommand('insertHTML', false, '<br>✤ ');
+    }
+  });
+}
+
+function buildPanel(p){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'panel';
+  const head = document.createElement('div');
+  head.className = 'panel-head';
+  const title = document.createElement('div');
+  title.className = 'panel-title';
+  title.textContent = p.titulo;
+  head.appendChild(title);
+
+  // Botón especial para elegir asesores
+  if(p.tipo === 'viñetas_asesores'){
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn small tool';
+    btn.textContent = 'Elegir asesores de la sucursal';
+    btn.addEventListener('click', openAsesoresModal);
+    head.appendChild(btn);
+  }
+
+  wrapper.appendChild(head);
+
+  let body;
+  if(p.tipo === 'fecha'){
+    body = document.createElement('div');
+    body.className = 'panel-body';
+    body.innerHTML = `<input type="date" id="fechaVisitaInput" style="width:auto">`;
+  } else {
+    body = document.createElement('div');
+    body.className = 'panel-body';
+    body.setAttribute('contenteditable','true');
+    body.setAttribute('data-placeholder','Escribe aquí…');
+    attachBulletBehavior(body);
+  }
+  wrapper.appendChild(body);
+  return wrapper;
+}
 
 function insertarPlantilla(key){
   const cfg = PLANTILLAS[key] || PLANTILLAS.capacitacion;
   actTitulo.textContent = cfg.titulo;
   actContenido.innerHTML = '';
-  cfg.paneles.forEach(([t, body])=>{
-    const p = document.createElement('div');
-    p.className = 'panel';
-    p.innerHTML = `
-      <div class="panel-title">${t}</div>
-      <div class="panel-body" contenteditable="true" data-placeholder="Escribe aquí…">${body.replace(/\n/g,'<br>')}</div>
-    `;
-    actContenido.appendChild(p);
-  });
+  cfg.paneles.forEach(p => actContenido.appendChild(buildPanel(p)));
 }
 btnInsertarPlantilla.addEventListener('click', ()=> insertarPlantilla(tipoReunion.value));
-/* Insertar por defecto al cargar */
-insertarPlantilla('capacitacion');
+insertarPlantilla('capacitacion'); // al cargar
 
-/* Fecha hoy por defecto */
-document.getElementById('fecha').valueAsDate = new Date();
+/* ====== Modal de ASESORES (para el panel acompañamiento) ====== */
+const modalAsesores = document.getElementById('modalAsesores');
+const contAsesores = document.getElementById('contenedorAsesores');
+const buscarAsesor = document.getElementById('buscarAsesor');
+const cuentaAsesores = document.getElementById('cuentaAsesores');
+let asesoresLista = [];
+let asesoresSeleccion = [];
+
+function openAsesoresModal(){
+  const suc = sucSel.value;
+  if(!suc){ alert('Primero selecciona una sucursal.'); return; }
+  const personas = (personasPorSucursal[suc] || []).filter(p => /ASESOR/i.test(p.puesto||''));
+  if(personas.length===0){ alert('No hay registros con puesto “ASESOR” en esa sucursal.'); return; }
+  asesoresLista = personas.map((p,idx)=> ({...p, idx, checked:false}));
+  renderAsesores('');
+  try{ modalAsesores.showModal(); }catch{ modalAsesores.setAttribute('open','true'); }
+}
+function renderAsesores(q){
+  const txt = (q||'').toLowerCase().trim();
+  contAsesores.innerHTML = '';
+  asesoresLista.forEach(it=>{
+    const ok = !txt || it.nombre.toLowerCase().includes(txt) || (it.puesto||'').toLowerCase().includes(txt);
+    if(!ok) return;
+    const row = document.createElement('div');
+    row.className = 'list';
+    row.innerHTML = `
+      <div>${it.nombre.toUpperCase()}</div>
+      <div>${it.puesto}</div>
+      <div style="text-align:center"><input type="checkbox" data-idx="${it.idx}" ${it.checked?'checked':''}></div>`;
+    contAsesores.appendChild(row);
+  });
+  cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`;
+}
+buscarAsesor.addEventListener('input', e=> renderAsesores(e.target.value));
+contAsesores.addEventListener('change', (e)=>{
+  const idx = +e.target.getAttribute('data-idx');
+  const it = asesoresLista.find(x=>x.idx===idx);
+  if(it){ it.checked = e.target.checked; }
+  cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`;
+});
+document.getElementById('cerrarAsesores').addEventListener('click', ()=> { try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); } });
+document.getElementById('confirmarAsesores').addEventListener('click', ()=>{
+  const sel = asesoresLista.filter(x=>x.checked);
+  if(sel.length===0){ alert('Selecciona al menos un asesor.'); return; }
+  // Encuentra el cuerpo del panel acompañamiento
+  const panels = [...document.querySelectorAll('.panel')];
+  const acomp = panels.find(p => p.querySelector('.panel-title')?.textContent.toUpperCase().includes('ACOMPAÑAMIENTO'));
+  if(acomp){
+    const body = acomp.querySelector('.panel-body[contenteditable]');
+    if(body){
+      // Reemplaza por viñetas con los seleccionados
+      body.innerHTML = sel.map(s => `✤ ${s.nombre.toUpperCase()}`).join('<br>') + '<br>✤ ';
+      attachBulletBehavior(body);
+    }
+  }
+  try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); }
+});
+
+/* ====== utilidades finales ====== */
+function crearViñetasEn(div){
+  // Asegura que cada línea comience con viñeta (si se pega texto)
+  const lines = div.innerText.split(/\r?\n/).map(l => {
+    l = l.trimStart();
+    return l.startsWith('✤') ? l : (l ? '✤ ' + l : '');
+  });
+  div.innerHTML = lines.join('<br>');
+}
+actContenido.addEventListener('paste', (e)=>{
+  const target = e.target;
+  if(target.classList.contains('panel-body') && target.hasAttribute('contenteditable')){
+    e.preventDefault();
+    const txt = (e.clipboardData || window.clipboardData).getData('text');
+    const lines = txt.split(/\r?\n/).filter(Boolean).map(l=>'✤ ' + l);
+    document.execCommand('insertHTML', false, lines.join('<br>'));
+  }
+});
 </script>
 </body>
 </html>
