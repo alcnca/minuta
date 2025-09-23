@@ -9,7 +9,7 @@
   *{ box-sizing:border-box }
   body{ font-family: Arial, Helvetica, sans-serif; margin:24px; color:#111 }
 
-  /* Encabezado institucional */
+  /* Encabezado */
   .header{ display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
   .header__logo{ width:90px; height:90px; object-fit:contain }
   .header__text h1{ font-size:18px; margin:0; text-transform:uppercase; letter-spacing:.5px }
@@ -18,7 +18,6 @@
   .box{ border:2px solid var(--b); padding:10px }
   .row{ display:grid; grid-template-columns:1fr 240px; gap:10px }
   .lbl{ font-weight:bold; margin-bottom:6px }
-  /* Hacemos más ancha la columna Convoca */
   .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1.8fr; gap:10px }
   .cell{ border:2px solid var(--b); padding:8px }
   .cell .lbl{ margin:0 0 6px 0 }
@@ -26,21 +25,25 @@
   input[type="text"], input[type="date"], input[type="time"], select, textarea{
     width:100%; padding:6px 8px; border:1px solid #333; border-radius:4px; font-size:14px;
   }
-  textarea{ min-height:70px; resize:vertical }
 
-  /* Tabla participantes con más espacio para ÁREA */
-  table{ width:100%; border-collapse:collapse; margin-top:8px }
-  col.col-num{ width:40px }
-  col.col-nombre{ width:33% }
-  col.col-area{ width:45% }    /* MÁS ESPACIO EN ÁREA */
-  col.col-firma{ width:22% }
+  /* === Participantes === */
+  table{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:auto; }
+  /* Fijamos # y Firma; Nombre y Área se autoajustan (ancho no fijado) */
+  col.col-num{ width:44px }
+  col.col-firma{ width:30% }
   th, td{ border:2px solid var(--b); padding:7px 8px; font-size:14px }
   th{ text-align:center; background:var(--g) }
   td.num{ text-align:center }
-  td.asistencia{ }
-  /* Línea de firma */
-  .firma-line{ height:30px; border-bottom:1px solid #000; margin:0 8px }
-  .firma-txt{ font-size:11px; text-align:center; color:#444; margin-top:2px }
+  td.nombre{ text-transform:uppercase } /* NOMBRE en mayúsculas */
+
+  /* Firma autógrafa: gran altura + línea */
+  td.asistencia{ padding:0 }
+  .firma-box{
+    height:100%; display:flex; flex-direction:column; justify-content:flex-end;
+    min-height:90px;           /* pantalla */
+  }
+  .firma-line{ border-top:1px solid #000; margin:0 12px 6px 12px; }
+  .firma-txt{ font-size:11px; text-align:center; color:#444; margin:0 0 6px 0 }
 
   .actions{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap }
   .btn{ padding:10px 14px; border:0; border-radius:8px; cursor:pointer; font-weight:600; background:#0b4fb3; color:#fff }
@@ -48,7 +51,7 @@
   .btn.small{ padding:6px 10px; font-size:12px }
   .hint{ font-size:12px; color:#444 }
 
-  /* Modales */
+  /* === Modal genérico === */
   dialog::backdrop{ background:rgba(0,0,0,.35) }
   dialog{ border:0; border-radius:12px; padding:0; max-width:720px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
   .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
@@ -60,6 +63,14 @@
   .srch{ display:flex; gap:8px; margin:8px 0 12px }
   .srch input{ flex:1 }
 
+  /* === Orden del Día === */
+  .seccion-title{ font-weight:bold; margin:16px 0 6px 0 }
+  .tabla-od{ width:100%; border-collapse:collapse }
+  .tabla-od th, .tabla-od td{ border:2px solid #000; padding:6px 8px; }
+  .tabla-od th{ background:#f6f6f6 }
+  .tabla-od .num{ width:44px; text-align:center }
+  .tabla-od .tema{ text-transform:uppercase }
+
   /* Impresión */
   @media print{
     .actions, .hint, #btnAbrirModal, #btnObjetivo { display:none!important }
@@ -67,6 +78,7 @@
     .cell, .box, th, td { border:1px solid #000 }
     body{ margin:10mm }
     .header{ border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px }
+    .firma-box{ min-height:28mm } /* altura para firma en papel */
   }
 </style>
 </head>
@@ -82,7 +94,7 @@
   </div>
 </section>
 
-<!-- Fila Objetivo (ahora se captura vía ventana) / Fecha -->
+<!-- Objetivo / Fecha -->
 <div class="row">
   <div class="box">
     <div class="lbl">Objetivo:</div>
@@ -97,7 +109,7 @@
   </div>
 </div>
 
-<!-- Fila Sucursal / Horarios / Convoca -->
+<!-- Sucursal / Horas / Convoca -->
 <div class="inline">
   <div class="cell">
     <div class="lbl">Sucursal:</div>
@@ -105,7 +117,6 @@
       <option value="">Cargando sucursales…</option>
     </select>
   </div>
-
   <div class="cell">
     <div class="lbl">Hora inicio</div>
     <input type="time" id="horaInicio">
@@ -114,19 +125,17 @@
     <div class="lbl">Hora fin</div>
     <input type="time" id="horaFin">
   </div>
-
   <div class="cell">
     <div class="lbl">Convoca:</div>
-    <!-- Más ancho + tooltip con el valor completo -->
     <input id="convoca" list="convocaList" placeholder="SELECCIONA QUIÉN CONVOCA…" autocomplete="off" title="">
     <datalist id="convocaList"></datalist>
   </div>
 </div>
 
-<!-- Botón abrir lista de personal de la sucursal -->
+<!-- Botones asistentes -->
 <div class="actions" style="margin-top:10px">
   <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
-  <span class="hint">Selector de sucursal alimentado desde JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
+  <span class="hint">Selector alimentado desde JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
 </div>
 
 <!-- Participantes -->
@@ -134,7 +143,8 @@
   <div class="lbl" style="margin-bottom:6px">Participantes:</div>
   <table id="tabla">
     <colgroup>
-      <col class="col-num"><col class="col-nombre"><col class="col-area"><col class="col-firma">
+      <col class="col-num"><col><col><col class="col-firma">
+      <!-- col 2 (Nombre) y col 3 (Área) sin ancho => se autoajustan -->
     </colgroup>
     <thead>
       <tr>
@@ -148,12 +158,29 @@
   </table>
 </div>
 
+<!-- ORDEN DEL DÍA -->
+<div class="seccion-title">ORDEN DEL DÍA</div>
+<table class="tabla-od" id="tablaOD">
+  <thead>
+    <tr><th class="num">#</th><th>Tema</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">1.</td><td class="tema" contenteditable="true">PASE DE LISTA DEL PERSONAL CONVOCADO</td></tr>
+    <tr><td class="num">2.</td><td class="tema" contenteditable="true">REUNIÓN Y CAPACITACIÓN RESPECTO AL TEMA</td></tr>
+    <tr><td class="num">3.</td><td class="tema" contenteditable="true">RESUMEN DE ACTIVIDADES REALIZADAS Y RECOMENDACIONES GENERALES</td></tr>
+    <tr><td class="num">4.</td><td class="tema" contenteditable="true">CIERRE Y FIRMA DE ASISTENCIA Y COMPROMISOS DE LOS ASISTENTES</td></tr>
+  </tbody>
+</table>
+<div class="actions">
+  <button class="btn small" id="agregarTema">+ Agregar tema</button>
+</div>
+
 <div class="actions">
   <button class="btn" onclick="window.print()">Imprimir</button>
   <button class="btn secondary" id="btnLimpiarTabla">Limpiar participantes</button>
 </div>
 
-<!-- Modal para elegir asistentes -->
+<!-- Modal asistentes -->
 <dialog id="modal">
   <div class="modal-head">Seleccionar asistentes</div>
   <div class="modal-body">
@@ -172,7 +199,7 @@
   </div>
 </dialog>
 
-<!-- Modal para capturar OBJETIVO -->
+<!-- Modal Objetivo -->
 <dialog id="modalObjetivo">
   <div class="modal-head">Capturar objetivo de la reunión</div>
   <div class="modal-body">
@@ -185,11 +212,10 @@
 </dialog>
 
 <script>
-/* ====== RUTA DEL JSON PARA SUCURSALES ====== */
-const DATA_URL =
-  "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
+/* ====== RUTA DEL JSON ====== */
+const DATA_URL = "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
 
-/* ====== LISTA “CONVOCA” (nombre + puesto) ====== */
+/* ====== LISTA “CONVOCA” ====== */
 const CONVOCA_LIST = [
   ["SANDRA LORENA PACHECO ROBLES","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
   ["ROLANDO VALERIANO HURTADO","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
@@ -212,7 +238,7 @@ const CONVOCA_LIST = [
   ["MARIA LOURDES CAUICH MAY","SUPERVISOR DE SUCURSALES REGIONAL"]
 ];
 
-/* ====== Referencias UI ====== */
+/* ====== Refs ====== */
 const tbody = document.getElementById('tbody');
 const modal = document.getElementById('modal');
 const contPersonal = document.getElementById('contenedorPersonal');
@@ -230,24 +256,28 @@ const modalObjetivo = document.getElementById('modalObjetivo');
 const objetivoInput = document.getElementById('objetivoInput');
 
 /* ====== Helpers ====== */
-function crearFilasVacias(n=9){
+function crearFilas(n){
   tbody.innerHTML = '';
-  for(let i=1;i<=n;i++){
+  for(let i=1;i<=Math.max(1,n);i++){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="num">${i}.</td>
       <td class="nombre"></td>
       <td class="area"></td>
       <td class="asistencia">
-        <div class="firma-line"></div>
-        <div class="firma-txt">Firma</div>
+        <div class="firma-box">
+          <div class="firma-line"></div>
+          <p class="firma-txt">Firma</p>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
   }
 }
-crearFilasVacias();
+// arranque: sin asistentes aún
+crearFilas(9);
 
+/* Hora fin +1h */
 function addMinutesToTimeStr(hhmm, minutes){
   if(!hhmm) return '';
   const [h,m] = hhmm.split(':').map(x=>parseInt(x||'0',10));
@@ -257,34 +287,29 @@ function addMinutesToTimeStr(hhmm, minutes){
   const mm = String(total%60).padStart(2,'0');
   return `${hh}:${mm}`;
 }
-
-/* ====== Autocompletar Hora Fin (+1h) ====== */
-horaInicio.addEventListener('change', ()=>{
-  const val = horaInicio.value;
-  if(val){ horaFin.value = addMinutesToTimeStr(val, 60); }
+horaInicio.addEventListener('change', ()=> {
+  if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }
 });
 
-/* ====== Convoca (datalist con texto completo) ====== */
+/* Convoca datalist (valor completo) */
 function poblarConvoca(){
   convocaList.innerHTML = '';
   CONVOCA_LIST.forEach(([nombre, puesto])=>{
     const texto = `${nombre} — ${puesto}`.toUpperCase();
     const opt = document.createElement('option');
-    opt.value = texto;      // mostrar nombre COMPLETO + puesto
+    opt.value = texto;
     convocaList.appendChild(opt);
   });
 }
 poblarConvoca();
-
-/* Mostrar valor completo como tooltip */
 convocaInput.addEventListener('input', ()=> {
   convocaInput.value = convocaInput.value.toUpperCase();
   convocaInput.title = convocaInput.value;
 });
 
-/* ====== Cargar JSON y agrupar por SUCURSAL ====== */
-let personasPorSucursal = {}; // { 'ETLA': [{nombre, puesto}], ... }
-let listaActual = []; // para modal
+/* Cargar JSON y agrupar por sucursal */
+let personasPorSucursal = {};
+let listaActual = [];
 
 async function cargarJSON(){
   try{
@@ -301,18 +326,15 @@ async function cargarJSON(){
       personasPorSucursal[suc].push({ nombre: nom, puesto, raw: row });
     });
 
-    // Poblar SELECT de sucursal
     sucSel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
     Object.keys(personasPorSucursal).sort((a,b)=>a.localeCompare(b,'es'))
       .forEach(suc=>{
         const opt = document.createElement('option');
-        opt.value = suc;
-        opt.textContent = suc;
+        opt.value = suc; opt.textContent = suc;
         sucSel.appendChild(opt);
       });
 
-    sucSel.disabled = false;
-    btnAbrirModal.disabled = false;
+    sucSel.disabled = false; btnAbrirModal.disabled = false;
   }catch(e){
     console.error(e);
     sucSel.innerHTML = `<option value="">No se pudo cargar el JSON</option>`;
@@ -320,12 +342,11 @@ async function cargarJSON(){
 }
 cargarJSON();
 
-/* ====== Modal con personal de la sucursal ====== */
+/* Modal de asistentes */
 function renderLista(personas){
   listaActual = personas.map((p,idx)=> ({...p, idx, checked:false}));
   applyFilter('');
 }
-
 function applyFilter(q){
   const txt = (q||'').toLowerCase().trim();
   contPersonal.innerHTML = '';
@@ -347,17 +368,13 @@ function applyFilter(q){
   });
   cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
 }
-
 document.getElementById('buscar')?.addEventListener('input', e=> applyFilter(e.target.value));
-
 contPersonal.addEventListener('change', (e)=>{
   const idx = +e.target.getAttribute('data-idx');
   const it = listaActual.find(x=>x.idx===idx);
   if(it){ it.checked = e.target.checked; }
   cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
 });
-
-/* Abrir modal */
 btnAbrirModal.addEventListener('click', ()=>{
   const suc = sucSel.value;
   if(!suc){ alert('Primero selecciona una sucursal.'); return; }
@@ -366,38 +383,29 @@ btnAbrirModal.addEventListener('click', ()=>{
   renderLista(personas);
   try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
 });
-
-/* Cerrar modal */
 document.getElementById('cerrarModal').addEventListener('click', ()=>{
   try{ modal.close(); }catch{ modal.removeAttribute('open'); }
 });
-
-/* Confirmar -> Llenar tabla (Nombre MAYÚSCULAS / Puesto / Firma) */
 document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const sel = listaActual.filter(x=>x.checked);
   if(sel.length===0){ alert('Selecciona al menos una persona.'); return; }
-  const total = Math.max(9, sel.length);
-  crearFilasVacias(total);
+
+  /* FILAS = exactamente el número de asistentes seleccionados */
+  crearFilas(sel.length);
 
   const filas = [...tbody.querySelectorAll('tr')];
   sel.forEach((p,i)=>{
     const tds = filas[i].children;
-    tds[1].textContent = (p.nombre || '').toUpperCase();  // MAYÚSCULAS
-    tds[2].textContent = p.puesto || '';
+    tds[1].textContent = (p.nombre || '').toUpperCase();  // Nombre MAYÚSCULAS
+    tds[2].textContent = p.puesto || '';                  // Área = Puesto
   });
 
   try{ modal.close(); }catch{ modal.removeAttribute('open'); }
 });
+btnLimpiarTabla.addEventListener('click', ()=> crearFilas(9));
 
-/* Limpiar tabla */
-btnLimpiarTabla.addEventListener('click', ()=> crearFilasVacias());
-
-/* Fecha de hoy por defecto */
-document.getElementById('fecha').valueAsDate = new Date();
-
-/* ====== OBJETIVO: capturar en ventana y mostrar en MAYÚSCULAS ====== */
+/* Objetivo (modal) */
 document.getElementById('btnObjetivo').addEventListener('click', ()=>{
-  // precargar con el texto existente (pero en minúsculas para edición si quieres)
   objetivoInput.value = objetivoView.value;
   try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); }
 });
@@ -405,10 +413,21 @@ document.getElementById('cancelObjetivo').addEventListener('click', ()=>{
   try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
 });
 document.getElementById('saveObjetivo').addEventListener('click', ()=>{
-  const txt = (objetivoInput.value || '').toUpperCase();
-  objetivoView.value = txt;
+  objetivoView.value = (objetivoInput.value || '').toUpperCase();
   try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
 });
+
+/* Orden del Día: agregar tema */
+document.getElementById('agregarTema').addEventListener('click', ()=>{
+  const tb = document.querySelector('#tablaOD tbody');
+  const n = tb.children.length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="num">${n}.</td><td class="tema" contenteditable="true">TEMA</td>`;
+  tb.appendChild(tr);
+});
+
+/* Fecha por defecto */
+document.getElementById('fecha').valueAsDate = new Date();
 </script>
 </body>
 </html>
