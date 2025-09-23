@@ -8,6 +8,7 @@
   :root{ --b:#000; --g:#f6f6f6; }
   *{ box-sizing:border-box }
   body{ font-family: Arial, Helvetica, sans-serif; margin:24px; color:#111 }
+
   /* Encabezado institucional */
   .header{ display:grid; grid-template-columns:100px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
   .header__logo{ width:90px; height:90px; object-fit:contain }
@@ -17,7 +18,8 @@
   .box{ border:2px solid var(--b); padding:10px }
   .row{ display:grid; grid-template-columns:1fr 240px; gap:10px }
   .lbl{ font-weight:bold; margin-bottom:6px }
-  .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1fr; gap:10px }
+  /* Hacemos más ancha la columna Convoca */
+  .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1.8fr; gap:10px }
   .cell{ border:2px solid var(--b); padding:8px }
   .cell .lbl{ margin:0 0 6px 0 }
 
@@ -26,23 +28,27 @@
   }
   textarea{ min-height:70px; resize:vertical }
 
-  /* Tabla participantes */
+  /* Tabla participantes con más espacio para ÁREA */
   table{ width:100%; border-collapse:collapse; margin-top:8px }
+  col.col-num{ width:40px }
+  col.col-nombre{ width:33% }
+  col.col-area{ width:45% }    /* MÁS ESPACIO EN ÁREA */
+  col.col-firma{ width:22% }
   th, td{ border:2px solid var(--b); padding:7px 8px; font-size:14px }
   th{ text-align:center; background:var(--g) }
-  td.num{ width:40px; text-align:center }
-  td.area{ width:28% }
-  td.asistencia{ width:22%; }
-  /* Línea de firma en la celda Asistencia */
+  td.num{ text-align:center }
+  td.asistencia{ }
+  /* Línea de firma */
   .firma-line{ height:30px; border-bottom:1px solid #000; margin:0 8px }
   .firma-txt{ font-size:11px; text-align:center; color:#444; margin-top:2px }
 
   .actions{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap }
   .btn{ padding:10px 14px; border:0; border-radius:8px; cursor:pointer; font-weight:600; background:#0b4fb3; color:#fff }
   .btn.secondary{ background:#555 }
+  .btn.small{ padding:6px 10px; font-size:12px }
   .hint{ font-size:12px; color:#444 }
 
-  /* Modal */
+  /* Modales */
   dialog::backdrop{ background:rgba(0,0,0,.35) }
   dialog{ border:0; border-radius:12px; padding:0; max-width:720px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
   .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
@@ -56,7 +62,7 @@
 
   /* Impresión */
   @media print{
-    .actions, .hint, #btnAbrirModal{ display:none!important }
+    .actions, .hint, #btnAbrirModal, #btnObjetivo { display:none!important }
     input, select, textarea { border:0; padding:0; outline:0 }
     .cell, .box, th, td { border:1px solid #000 }
     body{ margin:10mm }
@@ -76,11 +82,14 @@
   </div>
 </section>
 
-<!-- Fila Objetivo / Fecha -->
+<!-- Fila Objetivo (ahora se captura vía ventana) / Fecha -->
 <div class="row">
   <div class="box">
     <div class="lbl">Objetivo:</div>
-    <input type="text" id="objetivo" placeholder="Describir el objetivo de la reunión...">
+    <textarea id="objetivoView" readonly placeholder="(Capturar objetivo desde la ventana)…" style="text-transform:uppercase"></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn small" id="btnObjetivo">Capturar / editar objetivo</button>
+    </div>
   </div>
   <div class="box">
     <div class="lbl">Fecha:</div>
@@ -88,7 +97,7 @@
   </div>
 </div>
 
-<!-- Fila Sucursal (en lugar de “Lugar”) / Horarios / Convoca -->
+<!-- Fila Sucursal / Horarios / Convoca -->
 <div class="inline">
   <div class="cell">
     <div class="lbl">Sucursal:</div>
@@ -108,8 +117,8 @@
 
   <div class="cell">
     <div class="lbl">Convoca:</div>
-    <!-- datalist = filtro escribible + opciones -->
-    <input id="convoca" list="convocaList" placeholder="Selecciona o escribe…" autocomplete="off">
+    <!-- Más ancho + tooltip con el valor completo -->
+    <input id="convoca" list="convocaList" placeholder="SELECCIONA QUIÉN CONVOCA…" autocomplete="off" title="">
     <datalist id="convocaList"></datalist>
   </div>
 </div>
@@ -117,18 +126,21 @@
 <!-- Botón abrir lista de personal de la sucursal -->
 <div class="actions" style="margin-top:10px">
   <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
-  <span class="hint">El selector de sucursal se alimenta del JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
+  <span class="hint">Selector de sucursal alimentado desde JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
 </div>
 
 <!-- Participantes -->
 <div class="box" style="margin-top:12px">
   <div class="lbl" style="margin-bottom:6px">Participantes:</div>
   <table id="tabla">
+    <colgroup>
+      <col class="col-num"><col class="col-nombre"><col class="col-area"><col class="col-firma">
+    </colgroup>
     <thead>
       <tr>
-        <th style="width:40px">#</th>
+        <th>#</th>
         <th>Nombre</th>
-        <th>Área</th><!-- Aquí se coloca el PUESTO -->
+        <th>Área</th><!-- PUESTO -->
         <th>Asistencia</th><!-- Firma -->
       </tr>
     </thead>
@@ -160,8 +172,20 @@
   </div>
 </dialog>
 
+<!-- Modal para capturar OBJETIVO -->
+<dialog id="modalObjetivo">
+  <div class="modal-head">Capturar objetivo de la reunión</div>
+  <div class="modal-body">
+    <textarea id="objetivoInput" placeholder="Escribe aquí el objetivo… (se guardará en MAYÚSCULAS)" style="width:100%; min-height:120px;"></textarea>
+  </div>
+  <div class="modal-foot">
+    <button class="btn secondary" id="cancelObjetivo">Cancelar</button>
+    <button class="btn" id="saveObjetivo">Guardar objetivo</button>
+  </div>
+</dialog>
+
 <script>
-/* ====== RUTA DEL JSON DE PERSONAL POR SUCURSAL ====== */
+/* ====== RUTA DEL JSON PARA SUCURSALES ====== */
 const DATA_URL =
   "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
 
@@ -201,6 +225,9 @@ const horaInicio = document.getElementById('horaInicio');
 const horaFin = document.getElementById('horaFin');
 const convocaInput = document.getElementById('convoca');
 const convocaList = document.getElementById('convocaList');
+const objetivoView = document.getElementById('objetivoView');
+const modalObjetivo = document.getElementById('modalObjetivo');
+const objetivoInput = document.getElementById('objetivoInput');
 
 /* ====== Helpers ====== */
 function crearFilasVacias(n=9){
@@ -221,10 +248,6 @@ function crearFilasVacias(n=9){
 }
 crearFilasVacias();
 
-function titleCase(s=''){
-  return s.toLowerCase().replace(/\b([\p{L}\p{M}]+)/gu, w => w.charAt(0).toUpperCase()+w.slice(1));
-}
-
 function addMinutesToTimeStr(hhmm, minutes){
   if(!hhmm) return '';
   const [h,m] = hhmm.split(':').map(x=>parseInt(x||'0',10));
@@ -238,22 +261,26 @@ function addMinutesToTimeStr(hhmm, minutes){
 /* ====== Autocompletar Hora Fin (+1h) ====== */
 horaInicio.addEventListener('change', ()=>{
   const val = horaInicio.value;
-  if(val){
-    horaFin.value = addMinutesToTimeStr(val, 60);
-  }
+  if(val){ horaFin.value = addMinutesToTimeStr(val, 60); }
 });
 
-/* ====== Poblar datalist “Convoca” ====== */
+/* ====== Convoca (datalist con texto completo) ====== */
 function poblarConvoca(){
   convocaList.innerHTML = '';
   CONVOCA_LIST.forEach(([nombre, puesto])=>{
+    const texto = `${nombre} — ${puesto}`.toUpperCase();
     const opt = document.createElement('option');
-    opt.value = `${nombre}`;
-    opt.label = `${nombre} — ${puesto}`;
+    opt.value = texto;      // mostrar nombre COMPLETO + puesto
     convocaList.appendChild(opt);
   });
 }
 poblarConvoca();
+
+/* Mostrar valor completo como tooltip */
+convocaInput.addEventListener('input', ()=> {
+  convocaInput.value = convocaInput.value.toUpperCase();
+  convocaInput.title = convocaInput.value;
+});
 
 /* ====== Cargar JSON y agrupar por SUCURSAL ====== */
 let personasPorSucursal = {}; // { 'ETLA': [{nombre, puesto}], ... }
@@ -310,7 +337,7 @@ function applyFilter(q){
     const row = document.createElement('div');
     row.className = 'list';
     row.innerHTML = `
-      <div>${titleCase(nombre)}</div>
+      <div>${nombre.toUpperCase()}</div>
       <div>${puesto}</div>
       <div style="text-align:center">
         <input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}>
@@ -345,7 +372,7 @@ document.getElementById('cerrarModal').addEventListener('click', ()=>{
   try{ modal.close(); }catch{ modal.removeAttribute('open'); }
 });
 
-/* Confirmar -> Llenar tabla (Nombre / Puesto / Firma) */
+/* Confirmar -> Llenar tabla (Nombre MAYÚSCULAS / Puesto / Firma) */
 document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const sel = listaActual.filter(x=>x.checked);
   if(sel.length===0){ alert('Selecciona al menos una persona.'); return; }
@@ -355,7 +382,7 @@ document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const filas = [...tbody.querySelectorAll('tr')];
   sel.forEach((p,i)=>{
     const tds = filas[i].children;
-    tds[1].textContent = titleCase(p.nombre);
+    tds[1].textContent = (p.nombre || '').toUpperCase();  // MAYÚSCULAS
     tds[2].textContent = p.puesto || '';
   });
 
@@ -367,6 +394,21 @@ btnLimpiarTabla.addEventListener('click', ()=> crearFilasVacias());
 
 /* Fecha de hoy por defecto */
 document.getElementById('fecha').valueAsDate = new Date();
+
+/* ====== OBJETIVO: capturar en ventana y mostrar en MAYÚSCULAS ====== */
+document.getElementById('btnObjetivo').addEventListener('click', ()=>{
+  // precargar con el texto existente (pero en minúsculas para edición si quieres)
+  objetivoInput.value = objetivoView.value;
+  try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); }
+});
+document.getElementById('cancelObjetivo').addEventListener('click', ()=>{
+  try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
+});
+document.getElementById('saveObjetivo').addEventListener('click', ()=>{
+  const txt = (objetivoInput.value || '').toUpperCase();
+  objetivoView.value = txt;
+  try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
+});
 </script>
 </body>
 </html>
