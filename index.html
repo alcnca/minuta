@@ -7,18 +7,16 @@
 <style>
   :root{ --b:#000; --g:#f6f6f6; }
   *{ box-sizing:border-box }
-  body{ font-family: Arial, Helvetica, sans-serif; margin:24px; color:#111 }
+  body{ font-family: Arial, Helvetica, sans-serif; margin:18px 18px 24px; color:#111 }
 
-  /* Encabezado con tu logo */
-  .header{ display:grid; grid-template-columns:120px 1fr; gap:12px; align-items:center; border-bottom:2px solid var(--b); padding-bottom:10px; margin-bottom:16px }
-  .header__logo{ width:115px; height:90px; object-fit:contain }
-  .header__text h1{ font-size:18px; margin:0; text-transform:uppercase; letter-spacing:.5px }
-  .header__text p{ margin:2px 0 0 0; font-size:12px }
+  /* ====== Encabezado (banner) ====== */
+  .header-img{ display:block; width:100%; height:auto; margin:0 auto 10px auto; }
 
   .box{ border:2px solid var(--b); padding:10px }
   .row{ display:grid; grid-template-columns:1fr 240px; gap:10px }
   .lbl{ font-weight:bold; margin-bottom:6px }
-  /* Convoca más ancho */
+
+  /* Sucursal / horas / convoca  */
   .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1.8fr; gap:10px }
   .cell{ border:2px solid var(--b); padding:8px }
   .cell .lbl{ margin:0 0 6px 0 }
@@ -26,19 +24,24 @@
   input[type="text"], input[type="date"], input[type="time"], select, textarea{
     width:100%; padding:6px 8px; border:1px solid #333; border-radius:4px; font-size:14px;
   }
+  textarea{ resize:vertical }
 
-  /* === Participantes === */
+  /* Vista formateada de CONVOCA */
+  #convocaVista .nombre{ font-weight:bold; text-transform:uppercase; }
+  #convocaVista .puesto{ font-size:13px; }
+  .convoca-input{ margin-bottom:6px } /* buscador arriba y vista abajo */
+
+  /* ====== Tabla participantes ====== */
   table{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:auto; }
   col.col-num{ width:44px }
   col.col-firma{ width:30% }
   th, td{ border:2px solid var(--b); padding:7px 8px; font-size:14px }
   th{ text-align:center; background:var(--g) }
   td.num{ text-align:center }
-  td.nombre{ text-transform:uppercase } /* NOMBRE en mayúsculas */
+  td.nombre{ text-transform:uppercase }
 
-  /* Firma autógrafa alta */
   td.asistencia{ padding:0 }
-  .firma-box{ height:100%; display:flex; flex-direction:column; justify-content:flex-end; min-height:95px; }
+  .firma-box{ display:flex; flex-direction:column; justify-content:flex-end; min-height:95px; }
   .firma-line{ border-top:1px solid #000; margin:0 12px 6px 12px; }
   .firma-txt{ font-size:11px; text-align:center; color:#444; margin:0 0 6px 0 }
 
@@ -48,7 +51,7 @@
   .btn.small{ padding:6px 10px; font-size:12px }
   .hint{ font-size:12px; color:#444 }
 
-  /* === Modales === */
+  /* ====== Listas/modales ====== */
   dialog::backdrop{ background:rgba(0,0,0,.35) }
   dialog{ border:0; border-radius:12px; padding:0; max-width:760px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
   .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
@@ -60,7 +63,7 @@
   .srch{ display:flex; gap:8px; margin:8px 0 12px }
   .srch input{ flex:1 }
 
-  /* === Orden del Día === */
+  /* ====== Orden del día ====== */
   .seccion-title{ font-weight:bold; margin:16px 0 6px 0 }
   .tabla-od{ width:100%; border-collapse:collapse }
   .tabla-od th, .tabla-od td{ border:2px solid #000; padding:6px 8px; }
@@ -68,52 +71,44 @@
   .tabla-od .num{ width:44px; text-align:center }
   .tabla-od .tema{ text-transform:uppercase }
 
-  /* === Actividades (último cuadro) === */
+  /* ====== Último cuadro (plantillas) ====== */
   .act-box{ border:2px solid #000; margin-top:14px; }
   .act-title{ font-weight:bold; padding:6px 8px; border-bottom:2px solid #000; text-transform:uppercase; }
   .panel{ border-top:2px solid #000; }
   .panel:first-of-type{ border-top:0 }
   .panel-head{ display:flex; align-items:center; gap:8px; padding:6px 8px }
   .panel-title{ font-weight:bold; text-transform:uppercase }
-  /* MISMO TAMAÑO EN TODO EL CUADRO */
-  .act-box, .act-box *{ font-size:13px; }
+  .act-box, .act-box *{ font-size:13px; } /* mismo tamaño en todo el cuadro */
   .panel-body{ padding:6px 8px; min-height:48px; outline:none; white-space:pre-wrap }
   .panel-body[contenteditable="true"]:empty:before{ content: attr(data-placeholder); color:#777; }
   .panel .tool{ margin-left:auto }
 
-  /* Próxima reunión */
   .proxima{ margin-top:10px; display:grid; grid-template-columns:160px 1fr; border:2px solid #000; align-items:center }
   .proxima .lbl{ border-right:2px solid #000; padding:6px 8px }
   .proxima .val{ padding:4px 8px }
 
-  /* Pie de página con tu imagen */
-  .footer{ margin-top:24px; }
-  .footer img{ width:100%; max-height:90px; object-fit:contain }
+  /* ====== Pie ====== */
+  .footer{ margin-top:20px; }
+  .footer img{ width:100%; height:auto; display:block }
 
-  /* Impresión */
+  /* ====== Impresión ====== */
   @media print{
+    @page{ margin: 12mm 10mm 35mm 10mm; } /* deja espacio abajo para el pie fijo */
     .actions, .hint, #btnAbrirModal, #btnObjetivo, #agregarTema, #btnInsertarPlantilla, #tipoReunion,
-    .tool { display:none!important }
+    .tool, .convoca-input { display:none!important }
     input, select, textarea { border:0; padding:0; outline:0 }
     .cell, .box, th, td, .act-box, .proxima{ border:1px solid #000 }
-    .header{ border-bottom:1px solid #000; padding-bottom:6px; margin-bottom:8px }
     .firma-box{ min-height:28mm }
-    body{ margin-bottom:38mm }         /* espacio para el pie fijo */
-    .footer-fixed{ position:fixed; left:0; right:0; bottom:0; }
+    /* pie fijo solo al imprimir */
+    .footer{ position:fixed; left:0; right:0; bottom:0; }
+    body{ margin-bottom:0 !important; }
   }
 </style>
 </head>
 <body>
 
-<!-- Encabezado con logo -->
-<section class="header">
-  <img class="header__logo" src="https://raw.githubusercontent.com/alcnca/minuta/main/encabezado.png" alt="Logo">
-  <div class="header__text">
-    <h1>COOPERATIVA ACREIMEX</h1>
-    <p>Coordinación de Recuperación Preventiva y Administrativa</p>
-    <p class="hint">Formato de Minuta de Reunión</p>
-  </div>
-</section>
+<!-- Encabezado institucional (banner completo) -->
+<img class="header-img" src="https://raw.githubusercontent.com/alcnca/minuta/main/encabezado.png" alt="Encabezado ACREIMEX">
 
 <!-- Objetivo / Fecha -->
 <div class="row">
@@ -146,15 +141,20 @@
   </div>
   <div class="cell">
     <div class="lbl">Convoca:</div>
-    <input id="convoca" list="convocaList" placeholder="SELECCIONA QUIÉN CONVOCA…" autocomplete="off" title="">
+    <!-- buscador + vista formateada -->
+    <input id="convoca" class="convoca-input" list="convocaList" placeholder="SELECCIONA QUIÉN CONVOCA…" autocomplete="off">
     <datalist id="convocaList"></datalist>
+    <div id="convocaVista">
+      <div class="nombre" id="convocaNombre"></div>
+      <div class="puesto" id="convocaPuesto"></div>
+    </div>
   </div>
 </div>
 
 <!-- Botones asistentes -->
 <div class="actions" style="margin-top:10px">
   <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
-  <span class="hint">El selector se alimenta desde el JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
+  <span class="hint">Selector alimentado desde JSON (SUCURSAL, NOMBRECOMPLETO, PUESTO).</span>
 </div>
 
 <!-- Participantes -->
@@ -198,7 +198,7 @@
   <div id="actContenido"></div>
 </section>
 
-<!-- Próxima reunión con calendario -->
+<!-- Próxima reunión -->
 <div class="proxima" style="margin-top:8px">
   <div class="lbl"><strong>Próxima Reunión:</strong></div>
   <div class="val"><input type="date" id="proxReunionDate"></div>
@@ -208,62 +208,41 @@
   <button class="btn" onclick="window.print()">Imprimir</button>
 </div>
 
-<!-- Pie de página -->
-<div class="footer footer-fixed">
+<!-- Pie institucional -->
+<footer class="footer">
   <img src="https://raw.githubusercontent.com/alcnca/minuta/main/piepagina.png" alt="Pie de página">
-</div>
+</footer>
 
-<!-- Modal asistentes (tabla principal) -->
+<!-- Modales existentes (asistentes / objetivo / asesores) -->
 <dialog id="modal">
   <div class="modal-head">Seleccionar asistentes</div>
   <div class="modal-body">
-    <div class="srch">
-      <input id="buscar" type="text" placeholder="Buscar por nombre o puesto…">
-      <span class="pill" id="cuentaSeleccionados">0 seleccionados</span>
-    </div>
+    <div class="srch"><input id="buscar" type="text" placeholder="Buscar por nombre o puesto…"><span class="pill" id="cuentaSeleccionados">0 seleccionados</span></div>
     <div class="list head"><div>Nombre</div><div>Puesto</div><div>Incluir</div></div>
     <div id="contenedorPersonal"></div>
   </div>
-  <div class="modal-foot">
-    <button class="btn secondary" id="cerrarModal">Cancelar</button>
-    <button class="btn" id="confirmarSeleccion">Agregar a la minuta</button>
-  </div>
+  <div class="modal-foot"><button class="btn secondary" id="cerrarModal">Cancelar</button><button class="btn" id="confirmarSeleccion">Agregar a la minuta</button></div>
 </dialog>
 
-<!-- Modal Objetivo -->
 <dialog id="modalObjetivo">
   <div class="modal-head">Capturar objetivo de la reunión</div>
-  <div class="modal-body">
-    <textarea id="objetivoInput" placeholder="Escribe aquí el objetivo… (se guardará en MAYÚSCULAS)" style="width:100%; min-height:120px;"></textarea>
-  </div>
-  <div class="modal-foot">
-    <button class="btn secondary" id="cancelObjetivo">Cancelar</button>
-    <button class="btn" id="saveObjetivo">Guardar objetivo</button>
-  </div>
+  <div class="modal-body"><textarea id="objetivoInput" placeholder="Escribe aquí el objetivo… (se guardará en MAYÚSCULAS)" style="width:100%; min-height:120px;"></textarea></div>
+  <div class="modal-foot"><button class="btn secondary" id="cancelObjetivo">Cancelar</button><button class="btn" id="saveObjetivo">Guardar objetivo</button></div>
 </dialog>
 
-<!-- Modal para elegir ASESORES (panel acompañamiento) -->
 <dialog id="modalAsesores">
   <div class="modal-head">Elegir asesores de la sucursal</div>
   <div class="modal-body">
-    <div class="srch">
-      <input id="buscarAsesor" type="text" placeholder="Buscar asesor…">
-      <span class="pill" id="cuentaAsesores">0 seleccionados</span>
-    </div>
+    <div class="srch"><input id="buscarAsesor" type="text" placeholder="Buscar asesor…"><span class="pill" id="cuentaAsesores">0 seleccionados</span></div>
     <div class="list head"><div>Nombre</div><div>Puesto</div><div>Incluir</div></div>
     <div id="contenedorAsesores"></div>
   </div>
-  <div class="modal-foot">
-    <button class="btn secondary" id="cerrarAsesores">Cancelar</button>
-    <button class="btn" id="confirmarAsesores">Insertar en viñetas</button>
-  </div>
+  <div class="modal-foot"><button class="btn secondary" id="cerrarAsesores">Cancelar</button><button class="btn" id="confirmarAsesores">Insertar en viñetas</button></div>
 </dialog>
 
 <script>
-/* ====== URLs de datos e imágenes ====== */
+/* ====== Datos ====== */
 const DATA_URL = "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
-
-/* ====== Lista CONVOCA ====== */
 const CONVOCA_LIST = [
   ["SANDRA LORENA PACHECO ROBLES","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
   ["ROLANDO VALERIANO HURTADO","ASISTENTE DE RECUPERACIÓN EXTRAJUDICIAL"],
@@ -298,6 +277,8 @@ const horaInicio = document.getElementById('horaInicio');
 const horaFin = document.getElementById('horaFin');
 const convocaInput = document.getElementById('convoca');
 const convocaList = document.getElementById('convocaList');
+const convocaNombre = document.getElementById('convocaNombre');
+const convocaPuesto = document.getElementById('convocaPuesto');
 const objetivoView = document.getElementById('objetivoView');
 const modalObjetivo = document.getElementById('modalObjetivo');
 const objetivoInput = document.getElementById('objetivoInput');
@@ -308,39 +289,15 @@ const actContenido = document.getElementById('actContenido');
 const proxDate = document.getElementById('proxReunionDate');
 
 /* ====== Helpers ====== */
-function crearFilas(n){
-  tbody.innerHTML = '';
-  for(let i=1;i<=Math.max(1,n);i++){
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="num">${i}.</td>
-      <td class="nombre"></td>
-      <td class="area"></td>
-      <td class="asistencia">
-        <div class="firma-box">
-          <div class="firma-line"></div>
-          <p class="firma-txt">Firma</p>
-        </div>
-      </td>`;
-    tbody.appendChild(tr);
-  }
-}
+function crearFilas(n){ tbody.innerHTML=''; for(let i=1;i<=Math.max(1,n);i++){ const tr=document.createElement('tr'); tr.innerHTML=`
+  <td class="num">${i}.</td><td class="nombre"></td><td class="area"></td>
+  <td class="asistencia"><div class="firma-box"><div class="firma-line"></div><p class="firma-txt">Firma</p></div></td>`; tbody.appendChild(tr);} }
 crearFilas(9);
 
-function addMinutesToTimeStr(hhmm, minutes){
-  if(!hhmm) return '';
-  const [h,m] = hhmm.split(':').map(x=>parseInt(x||'0',10));
-  let total = h*60 + m + minutes;
-  total = (total + 1440) % 1440;
-  const hh = String(Math.floor(total/60)).padStart(2,'0');
-  const mm = String(total%60).padStart(2,'0');
-  return `${hh}:${mm}`;
-}
-horaInicio.addEventListener('change', ()=> {
-  if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }
-});
+function addMinutesToTimeStr(hhmm, minutes){ if(!hhmm) return ''; const [h,m]=hhmm.split(':').map(x=>parseInt(x||'0',10)); let t=h*60+m+minutes; t=(t+1440)%1440; const hh=String(Math.floor(t/60)).padStart(2,'0'); const mm=String(t%60).padStart(2,'0'); return `${hh}:${mm}`; }
+horaInicio.addEventListener('change', ()=> { if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }});
 
-/* Convoca datalist (mostrar NOMBRE — PUESTO) */
+/* ====== CONVOCA: datalist + vista completa ====== */
 function poblarConvoca(){
   convocaList.innerHTML = '';
   CONVOCA_LIST.forEach(([nombre, puesto])=>{
@@ -349,36 +306,27 @@ function poblarConvoca(){
   });
 }
 poblarConvoca();
-convocaInput.addEventListener('input', ()=> {
-  convocaInput.value = convocaInput.value.toUpperCase();
-  convocaInput.title = convocaInput.value;  // tooltip con el texto completo
-});
-
-/* Fecha hoy y próxima reunión (+2 meses) */
-function addMonths(date, m){
-  const d = new Date(date.getTime());
-  d.setMonth(d.getMonth() + m);
-  // ajusta fin de mes
-  if(d.getDate() !== date.getDate()) d.setDate(0);
-  return d;
+function actualizarVistaConvoca(v){
+  const parts = (v||'').toUpperCase().split('—');
+  const nombre = (parts[0]||'').trim();
+  const puesto = (parts[1]||'').trim();
+  convocaNombre.textContent = nombre;
+  convocaPuesto.textContent = puesto ? puesto : '';
 }
-function dateToInput(d){ return d.toISOString().slice(0,10); }
+convocaInput.addEventListener('input', ()=> { convocaInput.value = convocaInput.value.toUpperCase(); actualizarVistaConvoca(convocaInput.value); });
 
+/* ====== Fechas ====== */
+function addMonths(d, m){ const x=new Date(d.getTime()); x.setMonth(x.getMonth()+m); if(x.getDate()!==d.getDate()) x.setDate(0); return x; }
+function dateToInput(d){ return d.toISOString().slice(0,10); }
 const now = new Date();
 document.getElementById('fecha').valueAsDate = now;
 proxDate.value = dateToInput(addMonths(now, 2));
 let proxDateEdited = false;
 proxDate.addEventListener('input', ()=> proxDateEdited = true);
-document.getElementById('fecha').addEventListener('input', e=>{
-  if(!proxDateEdited){
-    const base = new Date(e.target.value || new Date());
-    proxDate.value = dateToInput(addMonths(base, 2));
-  }
-});
+document.getElementById('fecha').addEventListener('input', e=>{ if(!proxDateEdited){ const base=new Date(e.target.value||new Date()); proxDate.value = dateToInput(addMonths(base,2)); }});
 
-/* Cargar JSON y agrupar por sucursal */
-let personasPorSucursal = {};
-let listaActual = [];
+/* ====== Personal por sucursal (JSON) ====== */
+let personasPorSucursal = {}; let listaActual = [];
 async function cargarJSON(){
   try{
     const res = await fetch(DATA_URL, {cache:'no-store'});
@@ -392,88 +340,56 @@ async function cargarJSON(){
       if(!suc || !nom) return;
       (personasPorSucursal[suc] ??= []).push({ nombre: nom, puesto, raw: row });
     });
-    sucSel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
+    const sel = document.getElementById('sucursalSelect');
+    sel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
     Object.keys(personasPorSucursal).sort((a,b)=>a.localeCompare(b,'es'))
       .forEach(suc=>{
-        const opt = document.createElement('option'); opt.value = suc; opt.textContent = suc; sucSel.appendChild(opt);
+        const opt=document.createElement('option'); opt.value=suc; opt.textContent=suc; sel.appendChild(opt);
       });
-    btnAbrirModal.disabled = false; sucSel.disabled = false;
-  }catch(e){ console.error(e); sucSel.innerHTML = `<option value="">No se pudo cargar el JSON</option>`; }
+    btnAbrirModal.disabled = false; sel.disabled = false;
+  }catch(e){ console.error(e); document.getElementById('sucursalSelect').innerHTML = `<option value="">No se pudo cargar el JSON</option>`; }
 }
 cargarJSON();
 
-/* Modal asistentes (tabla principal) */
-function renderLista(personas){
-  listaActual = personas.map((p,idx)=> ({...p, idx, checked:false}));
-  applyFilter('');
-}
+/* ====== Modal asistentes (tabla principal) ====== */
+function renderLista(personas){ listaActual = personas.map((p,idx)=> ({...p, idx, checked:false})); applyFilter(''); }
 function applyFilter(q){
-  const txt = (q||'').toLowerCase().trim();
-  contPersonal.innerHTML = '';
+  const txt=(q||'').toLowerCase().trim(); contPersonal.innerHTML='';
   listaActual.forEach(item=>{
     const {nombre='', puesto=''} = item;
-    const ok = !txt || nombre.toLowerCase().includes(txt) || puesto.toLowerCase().includes(txt);
+    const ok=!txt || nombre.toLowerCase().includes(txt) || puesto.toLowerCase().includes(txt);
     if(!ok) return;
-    const row = document.createElement('div');
-    row.className = 'list';
-    row.innerHTML = `
-      <div>${nombre.toUpperCase()}</div>
-      <div>${puesto}</div>
-      <div style="text-align:center"><input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}></div>`;
+    const row=document.createElement('div'); row.className='list';
+    row.innerHTML=`<div>${nombre.toUpperCase()}</div><div>${puesto}</div><div style="text-align:center"><input type="checkbox" data-idx="${item.idx}" ${item.checked?'checked':''}></div>`;
     contPersonal.appendChild(row);
   });
   cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
 }
 document.getElementById('buscar')?.addEventListener('input', e=> applyFilter(e.target.value));
-contPersonal.addEventListener('change', (e)=>{
-  const idx = +e.target.getAttribute('data-idx');
-  const it = listaActual.find(x=>x.idx===idx);
-  if(it){ it.checked = e.target.checked; }
-  cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
-});
+contPersonal.addEventListener('change', (e)=>{ const idx=+e.target.getAttribute('data-idx'); const it=listaActual.find(x=>x.idx===idx); if(it){ it.checked=e.target.checked; } cuenta.textContent=`${listaActual.filter(x=>x.checked).length} seleccionados`; });
 btnAbrirModal.addEventListener('click', ()=>{
-  const suc = sucSel.value;
+  const suc = document.getElementById('sucursalSelect').value;
   if(!suc){ alert('Primero selecciona una sucursal.'); return; }
   const personas = personasPorSucursal[suc] || [];
-  if(personas.length===0){ alert('Esta sucursal no tiene personal en el JSON.'); return; }
-  renderLista(personas);
-  try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
+  if(!personas.length){ alert('Esta sucursal no tiene personal en el JSON.'); return; }
+  renderLista(personas); try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
 });
 document.getElementById('cerrarModal').addEventListener('click', ()=> { try{ modal.close(); }catch{ modal.removeAttribute('open'); } });
 document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const sel = listaActual.filter(x=>x.checked);
-  if(sel.length===0){ alert('Selecciona al menos una persona.'); return; }
+  if(!sel.length){ alert('Selecciona al menos una persona.'); return; }
   crearFilas(sel.length);
   const filas = [...tbody.querySelectorAll('tr')];
-  sel.forEach((p,i)=>{
-    const tds = filas[i].children;
-    tds[1].textContent = (p.nombre || '').toUpperCase();
-    tds[2].textContent = p.puesto || '';
-  });
+  sel.forEach((p,i)=>{ const t=filas[i].children; t[1].textContent=(p.nombre||'').toUpperCase(); t[2].textContent=p.puesto||''; });
   try{ modal.close(); }catch{ modal.removeAttribute('open'); }
 });
 
-/* Objetivo (modal) */
-document.getElementById('btnObjetivo').addEventListener('click', ()=>{
-  objetivoInput.value = objetivoView.value;
-  try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); }
-});
-document.getElementById('cancelObjetivo').addEventListener('click', ()=> { try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
-document.getElementById('saveObjetivo').addEventListener('click', ()=>{
-  objetivoView.value = (objetivoInput.value || '').toUpperCase();
-  try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
-});
+/* ====== Objetivo (modal) ====== */
+document.getElementById('btnObjetivo').addEventListener('click', ()=>{ objetivoInput.value=objetivoView.value; try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); } });
+document.getElementById('cancelObjetivo').addEventListener('click', ()=>{ try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
+document.getElementById('saveObjetivo').addEventListener('click', ()=>{ objetivoView.value=(objetivoInput.value||'').toUpperCase(); try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
 
-/* Orden del Día */
-document.getElementById('agregarTema').addEventListener('click', ()=>{
-  const tb = document.querySelector('#tablaOD tbody');
-  const n = tb.children.length + 1;
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td class="num">${n}.</td><td class="tema" contenteditable="true">TEMA</td>`;
-  tb.appendChild(tr);
-});
-
-/* ====== Plantillas del último cuadro ====== */
+/* ====== Plantillas del último cuadro (con viñetas y fecha mini) ====== */
 const PLANTILLAS = {
   capacitacion: {
     titulo: "ACTIVIDADES REALIZADAS Y PUNTOS RELEVANTES RESPECTO A LA CAPACITACIÓN",
@@ -505,153 +421,57 @@ const PLANTILLAS = {
       {titulo:"ACUERDOS:", tipo:"viñetas"},
       {titulo:"PENDIENTES:", tipo:"viñetas"}
     ]
-  },
-  capacitacion_compromisos: {
-    titulo: "CAPACITACIÓN Y COMPROMISOS",
-    paneles: [
-      {key:"fechaVisita", titulo:"FECHA:", tipo:"fecha"},
-      {titulo:"TEMARIO:", tipo:"viñetas"},
-      {titulo:"RECOMENDACIONES:", tipo:"viñetas"},
-      {titulo:"COMPROMISOS:", tipo:"viñetas"}
-    ]
   }
 };
 
-function seedBullet(div){
-  if(div.innerText.trim()==="") div.innerHTML = "✤ ";
-}
-
+function seedBullet(div){ if(div.innerText.trim()==="") div.innerHTML = "✤ "; }
 function attachBulletBehavior(div){
   seedBullet(div);
-  div.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){
-      e.preventDefault();
-      document.execCommand('insertHTML', false, '<br>✤ ');
-    }
-  });
+  div.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); document.execCommand('insertHTML', false, '<br>✤ '); } });
 }
-
 function buildPanel(p){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'panel';
-  const head = document.createElement('div');
-  head.className = 'panel-head';
-  const title = document.createElement('div');
-  title.className = 'panel-title';
-  title.textContent = p.titulo;
-  head.appendChild(title);
-
-  // Botón especial para elegir asesores
-  if(p.tipo === 'viñetas_asesores'){
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'btn small tool';
-    btn.textContent = 'Elegir asesores de la sucursal';
-    btn.addEventListener('click', openAsesoresModal);
-    head.appendChild(btn);
-  }
-
-  wrapper.appendChild(head);
-
+  const wrap=document.createElement('div'); wrap.className='panel';
+  const head=document.createElement('div'); head.className='panel-head';
+  const title=document.createElement('div'); title.className='panel-title'; title.textContent=p.titulo; head.appendChild(title);
+  if(p.tipo==='viñetas_asesores'){ const btn=document.createElement('button'); btn.type='button'; btn.className='btn small tool'; btn.textContent='Elegir asesores de la sucursal'; btn.addEventListener('click', openAsesoresModal); head.appendChild(btn); }
+  wrap.appendChild(head);
   let body;
-  if(p.tipo === 'fecha'){
-    body = document.createElement('div');
-    body.className = 'panel-body';
-    body.innerHTML = `<input type="date" id="fechaVisitaInput" style="width:auto">`;
-  } else {
-    body = document.createElement('div');
-    body.className = 'panel-body';
-    body.setAttribute('contenteditable','true');
-    body.setAttribute('data-placeholder','Escribe aquí…');
-    attachBulletBehavior(body);
-  }
-  wrapper.appendChild(body);
-  return wrapper;
+  if(p.tipo==='fecha'){ body=document.createElement('div'); body.className='panel-body'; body.innerHTML=`<input type="date" id="fechaVisitaInput" style="width:auto">`; }
+  else{ body=document.createElement('div'); body.className='panel-body'; body.setAttribute('contenteditable','true'); body.setAttribute('data-placeholder','Escribe aquí…'); attachBulletBehavior(body); }
+  wrap.appendChild(body); return wrap;
 }
-
-function insertarPlantilla(key){
-  const cfg = PLANTILLAS[key] || PLANTILLAS.capacitacion;
-  actTitulo.textContent = cfg.titulo;
-  actContenido.innerHTML = '';
-  cfg.paneles.forEach(p => actContenido.appendChild(buildPanel(p)));
-}
+function insertarPlantilla(key){ const cfg=PLANTILLAS[key]||PLANTILLAS.capacitacion; actTitulo.textContent=cfg.titulo; actContenido.innerHTML=''; cfg.paneles.forEach(p=>actContenido.appendChild(buildPanel(p))); }
 btnInsertarPlantilla.addEventListener('click', ()=> insertarPlantilla(tipoReunion.value));
-insertarPlantilla('capacitacion'); // al cargar
+insertarPlantilla('capacitacion');
 
-/* ====== Modal de ASESORES (para el panel acompañamiento) ====== */
-const modalAsesores = document.getElementById('modalAsesores');
-const contAsesores = document.getElementById('contenedorAsesores');
-const buscarAsesor = document.getElementById('buscarAsesor');
-const cuentaAsesores = document.getElementById('cuentaAsesores');
-let asesoresLista = [];
-let asesoresSeleccion = [];
-
+/* ====== Modal ASESORES (para el panel acompañamiento) ====== */
+const modalAsesores=document.getElementById('modalAsesores');
+const contAsesores=document.getElementById('contenedorAsesores');
+const buscarAsesor=document.getElementById('buscarAsesor');
+const cuentaAsesores=document.getElementById('cuentaAsesores');
+let asesoresLista=[];
 function openAsesoresModal(){
-  const suc = sucSel.value;
+  const suc = document.getElementById('sucursalSelect').value;
   if(!suc){ alert('Primero selecciona una sucursal.'); return; }
   const personas = (personasPorSucursal[suc] || []).filter(p => /ASESOR/i.test(p.puesto||''));
-  if(personas.length===0){ alert('No hay registros con puesto “ASESOR” en esa sucursal.'); return; }
+  if(!personas.length){ alert('No hay registros con puesto “ASESOR” en esa sucursal.'); return; }
   asesoresLista = personas.map((p,idx)=> ({...p, idx, checked:false}));
   renderAsesores('');
   try{ modalAsesores.showModal(); }catch{ modalAsesores.setAttribute('open','true'); }
 }
 function renderAsesores(q){
-  const txt = (q||'').toLowerCase().trim();
-  contAsesores.innerHTML = '';
-  asesoresLista.forEach(it=>{
-    const ok = !txt || it.nombre.toLowerCase().includes(txt) || (it.puesto||'').toLowerCase().includes(txt);
-    if(!ok) return;
-    const row = document.createElement('div');
-    row.className = 'list';
-    row.innerHTML = `
-      <div>${it.nombre.toUpperCase()}</div>
-      <div>${it.puesto}</div>
-      <div style="text-align:center"><input type="checkbox" data-idx="${it.idx}" ${it.checked?'checked':''}></div>`;
-    contAsesores.appendChild(row);
-  });
-  cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`;
-}
+  const txt=(q||'').toLowerCase().trim(); contAsesores.innerHTML=''; asesoresLista.forEach(it=>{
+    const ok=!txt || it.nombre.toLowerCase().includes(txt) || (it.puesto||'').toLowerCase().includes(txt); if(!ok) return;
+    const row=document.createElement('div'); row.className='list'; row.innerHTML=`<div>${it.nombre.toUpperCase()}</div><div>${it.puesto}</div><div style="text-align:center"><input type="checkbox" data-idx="${it.idx}" ${it.checked?'checked':''}></div>`; contAsesores.appendChild(row);
+  }); cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`; }
 buscarAsesor.addEventListener('input', e=> renderAsesores(e.target.value));
-contAsesores.addEventListener('change', (e)=>{
-  const idx = +e.target.getAttribute('data-idx');
-  const it = asesoresLista.find(x=>x.idx===idx);
-  if(it){ it.checked = e.target.checked; }
-  cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`;
-});
+contAsesores.addEventListener('change', (e)=>{ const idx=+e.target.getAttribute('data-idx'); const it=asesoresLista.find(x=>x.idx===idx); if(it){ it.checked=e.target.checked; } cuentaAsesores.textContent=`${asesoresLista.filter(x=>x.checked).length} seleccionados`; });
 document.getElementById('cerrarAsesores').addEventListener('click', ()=> { try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); } });
 document.getElementById('confirmarAsesores').addEventListener('click', ()=>{
-  const sel = asesoresLista.filter(x=>x.checked);
-  if(sel.length===0){ alert('Selecciona al menos un asesor.'); return; }
-  // Encuentra el cuerpo del panel acompañamiento
-  const panels = [...document.querySelectorAll('.panel')];
-  const acomp = panels.find(p => p.querySelector('.panel-title')?.textContent.toUpperCase().includes('ACOMPAÑAMIENTO'));
-  if(acomp){
-    const body = acomp.querySelector('.panel-body[contenteditable]');
-    if(body){
-      // Reemplaza por viñetas con los seleccionados
-      body.innerHTML = sel.map(s => `✤ ${s.nombre.toUpperCase()}`).join('<br>') + '<br>✤ ';
-      attachBulletBehavior(body);
-    }
-  }
+  const sel = asesoresLista.filter(x=>x.checked); if(!sel.length){ alert('Selecciona al menos un asesor.'); return; }
+  const acomp = [...document.querySelectorAll('.panel')].find(p => p.querySelector('.panel-title')?.textContent.toUpperCase().includes('ACOMPAÑAMIENTO'));
+  if(acomp){ const body = acomp.querySelector('.panel-body[contenteditable]'); if(body){ body.innerHTML = sel.map(s=>`✤ ${s.nombre.toUpperCase()}`).join('<br>') + '<br>✤ '; attachBulletBehavior(body); } }
   try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); }
-});
-
-/* ====== utilidades finales ====== */
-function crearViñetasEn(div){
-  // Asegura que cada línea comience con viñeta (si se pega texto)
-  const lines = div.innerText.split(/\r?\n/).map(l => {
-    l = l.trimStart();
-    return l.startsWith('✤') ? l : (l ? '✤ ' + l : '');
-  });
-  div.innerHTML = lines.join('<br>');
-}
-actContenido.addEventListener('paste', (e)=>{
-  const target = e.target;
-  if(target.classList.contains('panel-body') && target.hasAttribute('contenteditable')){
-    e.preventDefault();
-    const txt = (e.clipboardData || window.clipboardData).getData('text');
-    const lines = txt.split(/\r?\n/).filter(Boolean).map(l=>'✤ ' + l);
-    document.execCommand('insertHTML', false, lines.join('<br>'));
-  }
 });
 </script>
 </body>
