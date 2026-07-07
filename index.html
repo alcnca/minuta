@@ -393,7 +393,10 @@ async function cargarJSON(){
       (personasPorSucursal[suc] ??= []).push({ nombre: nom, puesto, raw: row });
     });
     const sel = document.getElementById('sucursalSelect');
-    sel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
+    sel.innerHTML = `
+    <option value="">Seleccione sucursal…</option>
+    <option value="TODAS">TODAS</option>
+`;
     Object.keys(personasPorSucursal).sort((a,b)=>a.localeCompare(b,'es'))
       .forEach(suc=>{
         const opt=document.createElement('option'); opt.value=suc; opt.textContent=suc; sel.appendChild(opt);
@@ -421,11 +424,19 @@ document.getElementById('buscar')?.addEventListener('input', e=> applyFilter(e.t
 contPersonal.addEventListener('change', (e)=>{ const idx=+e.target.getAttribute('data-idx'); const it=listaActual.find(x=>x.idx===idx); if(it){ it.checked=e.target.checked; } cuenta.textContent=`${listaActual.filter(x=>x.checked).length} seleccionados`; });
 btnAbrirModal.addEventListener('click', ()=>{
   const suc = document.getElementById('sucursalSelect').value;
-  if(!suc){ alert('Primero selecciona una sucursal.'); return; }
-  const personas = personasPorSucursal[suc] || [];
-  if(!personas.length){ alert('Esta sucursal no tiene personal en el JSON.'); return; }
-  renderLista(personas); try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
-});
+
+if(!suc){
+    alert('Primero selecciona una sucursal.');
+    return;
+}
+
+let personas = [];
+
+if(suc === "TODAS"){
+    personas = Object.values(personasPorSucursal).flat();
+}else{
+    personas = personasPorSucursal[suc] || [];
+}
 document.getElementById('cerrarModal').addEventListener('click', ()=> { try{ modal.close(); }catch{ modal.removeAttribute('open'); } });
 document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
   const sel = listaActual.filter(x=>x.checked);
@@ -504,8 +515,22 @@ const cuentaAsesores=document.getElementById('cuentaAsesores');
 let asesoresLista=[];
 function openAsesoresModal(){
   const suc = document.getElementById('sucursalSelect').value;
-  if(!suc){ alert('Primero selecciona una sucursal.'); return; }
-  const personas = (personasPorSucursal[suc] || []).filter(p => /ASESOR/i.test(p.puesto||''));
+
+if(!suc){
+    alert('Primero selecciona una sucursal.');
+    return;
+}
+
+let personas = [];
+
+if(suc === "TODAS"){
+    personas = Object.values(personasPorSucursal)
+        .flat()
+        .filter(p => /ASESOR/i.test(p.puesto || ''));
+}else{
+    personas = (personasPorSucursal[suc] || [])
+        .filter(p => /ASESOR/i.test(p.puesto || ''));
+}
   if(!personas.length){ alert('No hay registros con puesto “ASESOR” en esa sucursal.'); return; }
   asesoresLista = personas.map((p,idx)=> ({...p, idx, checked:false}));
   renderAsesores('');
