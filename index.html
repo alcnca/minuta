@@ -101,6 +101,18 @@
   .srch{ display:flex; gap:8px; margin:8px 0 12px }
   .srch input{ flex:1 }
 
+  /* ====== Objetivo dinámico ====== */
+  #objetivoView{
+    width:100%;
+    min-height:48px;
+    height:auto;
+    resize:none;
+    overflow:hidden;
+    box-sizing:border-box;
+    line-height:1.35;
+    display:block;
+  }
+
   /* ====== Orden del día ====== */
   .seccion-title{ font-weight:bold; margin:16px 0 6px 0 }
   .tabla-od{ width:100%; border-collapse:collapse }
@@ -129,11 +141,41 @@
   .footer{ margin-top:20px; }
   .footer img{ width:100%; height:auto; display:block }
 
+  /* ====== Firma del convocante ====== */
+  .firma-convocante{
+    margin:22px auto 8px;
+    width:320px;
+    text-align:center;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .firma-convocante-titulo{
+    font-weight:bold;
+    text-transform:uppercase;
+    margin-bottom:24px;
+  }
+  .firma-convocante-linea{
+    border-top:1.5px solid #000;
+    width:270px;
+    margin:0 auto 6px;
+  }
+  .firma-convocante-nombre{
+    font-weight:bold;
+    text-transform:uppercase;
+    font-size:12px;
+  }
+  .firma-convocante-puesto{
+    font-size:11px;
+    margin-top:2px;
+    text-transform:uppercase;
+  }
+
   /* ====== Impresión ====== */
   @media print{
   /* margen pequeño; el pie institucional va fijo al borde físico */
-  @page { 
-    margin: 12mm 10mm 10mm 10mm;   /* ↓ reduce margen inferior */
+  @page {
+    size: A4 portrait;
+    margin: 8mm 9mm 25mm 9mm;
   }
 
   /* oculta controles */
@@ -144,6 +186,12 @@
 
   /* estilos de impresión de cajas/tabla */
   input, select, textarea { border:0; padding:0; outline:0 }
+  #objetivoView{
+    height:auto !important;
+    min-height:48px;
+    overflow:visible;
+    white-space:pre-wrap;
+  }
   .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
 
   /* reserva exacta para que el contenido no se monte sobre el pie */
@@ -161,6 +209,30 @@
     width:100%; 
     height: 20mm;                   /* ajusta si tu imagen es más alta/baja */
     object-fit: contain;
+  }
+
+  /* Firma del convocante al cierre de la minuta */
+  .firma-convocante{
+    width:70mm;
+    margin:7mm auto 1mm;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .firma-convocante-titulo{
+    font-size:9pt;
+    margin-bottom:11mm;
+  }
+  .firma-convocante-linea{
+    width:58mm;
+    border-top:1px solid #000;
+    margin-bottom:2mm;
+  }
+  .firma-convocante-nombre{
+    font-size:8.5pt;
+    font-weight:bold;
+  }
+  .firma-convocante-puesto{
+    font-size:7.5pt;
   }
 
   /* altura de firma en papel */
@@ -341,6 +413,14 @@
   <div class="val"><input type="date" id="proxReunionDate"></div>
 </div>
 
+<!-- Firma del convocante -->
+<div class="firma-convocante" id="firmaConvocante">
+  <div class="firma-convocante-titulo">CONVOCA</div>
+  <div class="firma-convocante-linea"></div>
+  <div class="firma-convocante-nombre" id="firmaConvocanteNombre"></div>
+  <div class="firma-convocante-puesto" id="firmaConvocantePuesto"></div>
+</div>
+
 <div class="actions">
   <button class="btn" onclick="window.print()">Imprimir</button>
 </div>
@@ -397,16 +477,31 @@ const convocaArea = document.getElementById('convocaArea');
 const convocaFigura = document.getElementById('convocaFigura');
 const convocaInput = document.getElementById('convoca');
 const cambiarConvoca = document.getElementById('cambiarConvoca');
+const firmaConvocanteNombre = document.getElementById('firmaConvocanteNombre');
+const firmaConvocantePuesto = document.getElementById('firmaConvocantePuesto');
 const convocaNombre = document.getElementById('convocaNombre');
 const convocaPuesto = document.getElementById('convocaPuesto');
 const objetivoView = document.getElementById('objetivoView');
 const modalObjetivo = document.getElementById('modalObjetivo');
 const objetivoInput = document.getElementById('objetivoInput');
+
+objetivoInput.addEventListener('input', ()=>{
+  objetivoInput.style.height = 'auto';
+  objetivoInput.style.height = Math.max(120, objetivoInput.scrollHeight) + 'px';
+});
 const tipoReunion = document.getElementById('tipoReunion');
 const btnInsertarPlantilla = document.getElementById('btnInsertarPlantilla');
 const actTitulo = document.getElementById('actTitulo');
 const actContenido = document.getElementById('actContenido');
 const proxDate = document.getElementById('proxReunionDate');
+
+function ajustarObjetivo(){
+  if(!objetivoView) return;
+  objetivoView.style.height = 'auto';
+  objetivoView.style.height = Math.max(48, objetivoView.scrollHeight) + 'px';
+}
+ajustarObjetivo();
+window.addEventListener('resize', ajustarObjetivo);
 
 /* ====== Helpers ====== */
 function crearFilas(n){
@@ -647,6 +742,8 @@ cambiarConvoca.addEventListener('click', ()=>{
   mostrarFiltrosConvoca();
   convocaInput.value = '';
   actualizarVistaConvoca('');
+  firmaConvocanteNombre.textContent = '';
+  firmaConvocantePuesto.textContent = '';
 });
 
 convocaArea.addEventListener('change', ()=>{
@@ -668,6 +765,11 @@ convocaInput.addEventListener('change', ()=>{
   actualizarVistaConvoca(
     `${opt.dataset.nombre || ''} — ${opt.dataset.puesto || ''}`
   );
+
+  firmaConvocanteNombre.textContent =
+    String(opt.dataset.nombre || '').toUpperCase();
+  firmaConvocantePuesto.textContent =
+    String(opt.dataset.puesto || '').toUpperCase();
 
   // Una vez elegido el convocante, ocultamos los filtros para
   // dejar limpia la minuta. Se puede volver a cambiar con el botón.
