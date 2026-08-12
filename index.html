@@ -104,12 +104,13 @@
   /* ====== Objetivo dinámico ====== */
   #objetivoView{
     width:100%;
-    min-height:48px;
+    min-height:42px;
     height:auto;
     resize:none;
     overflow:hidden;
     box-sizing:border-box;
-    line-height:1.35;
+    line-height:1.25;
+    font-size:12px;
     display:block;
   }
 
@@ -254,11 +255,13 @@
   }
 
   #objetivoView{
-    height:auto !important;
-    min-height:35px !important;
-    overflow:visible !important;
+    min-height:32px !important;
+    overflow:hidden !important;
     white-space:pre-wrap !important;
     width:100% !important;
+    box-sizing:border-box !important;
+    font-size:9.5pt !important;
+    line-height:1.2 !important;
   }
 
   /* Participantes: aprovechar espacio */
@@ -579,10 +582,18 @@ const proxDate = document.getElementById('proxReunionDate');
 function ajustarObjetivo(){
   if(!objetivoView) return;
   objetivoView.style.height = 'auto';
-  objetivoView.style.height = Math.max(48, objetivoView.scrollHeight) + 'px';
+
+  // scrollHeight es la altura real necesaria para mostrar TODO el texto.
+  const h = Math.max(48, objetivoView.scrollHeight);
+  objetivoView.style.height = h + 'px';
 }
+
 ajustarObjetivo();
 window.addEventListener('resize', ajustarObjetivo);
+
+// Antes de imprimir, recalculamos la altura para que Edge no corte
+// el contenido del objetivo.
+window.addEventListener('beforeprint', ajustarObjetivo);
 
 /* ====== Helpers ====== */
 function crearFilas(n){
@@ -1248,7 +1259,11 @@ document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
 /* ====== Objetivo (modal) ====== */
 document.getElementById('btnObjetivo').addEventListener('click', ()=>{ objetivoInput.value=objetivoView.value; try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); } });
 document.getElementById('cancelObjetivo').addEventListener('click', ()=>{ try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
-document.getElementById('saveObjetivo').addEventListener('click', ()=>{ objetivoView.value=(objetivoInput.value||'').toUpperCase(); try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
+document.getElementById('saveObjetivo').addEventListener('click', ()=>{
+  objetivoView.value=(objetivoInput.value||'').toUpperCase();
+  ajustarObjetivo();
+  try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); }
+});
 
 /* ====== Plantillas del último cuadro (con viñetas y fecha mini) ====== */
 const PLANTILLAS = {
