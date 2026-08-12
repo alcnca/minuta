@@ -41,7 +41,7 @@
   td.nombre{ text-transform:uppercase }
 
   td.asistencia{ padding:0 }
-  .firma-box{ display:flex; flex-direction:column; justify-content:flex-end; min-height:95px; }
+  .firma-box{ display:flex; flex-direction:column; justify-content:flex-end; min-height:58px; }
   .firma-line{ border-top:1px solid #000; margin:0 12px 6px 12px; }
   .firma-txt{ font-size:11px; text-align:center; color:#444; margin:0 0 6px 0 }
 
@@ -172,99 +172,180 @@
 
   /* ====== Impresión ====== */
   @media print{
-  /* margen pequeño; el pie institucional va fijo al borde físico */
-  @page {
-    size: A4 portrait;
-    margin: 8mm 9mm 25mm 9mm;
+  /* ===== IMPRESIÓN EJECUTIVA: ENCABEZADO SOLO EN 1ª HOJA / PIE SOLO EN ÚLTIMA ===== */
+  @page{
+    size:A4 portrait;
+    margin:10mm 9mm 10mm 9mm;
   }
 
-  /* oculta controles */
-  .actions, .hint, #btnAbrirModal, #btnObjetivo, #agregarTema, 
-  #btnInsertarPlantilla, #tipoReunion, .tool, .convoca-input { 
-    display:none !important; 
+  html, body{
+    margin:0 !important;
+    padding:0 !important;
+    width:100%;
   }
 
-  /* estilos de impresión de cajas/tabla */
-  input, select, textarea { border:0; padding:0; outline:0 }
+  body{
+    box-sizing:border-box;
+    font-size:10pt;
+  }
+
+  /*
+   * Encabezado y pie quedan en el flujo normal del documento.
+   * Por ello:
+   * - encabezado = aparece únicamente al inicio de la minuta (1ª hoja)
+   * - pie = aparece únicamente después de todo el contenido (última hoja)
+   *
+   * No usar position:fixed aquí, porque eso provoca repetición en todas
+   * las páginas o que el pie quede sobre el contenido.
+   */
+  .header-img{
+    position:static !important;
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    max-height:27mm !important;
+    margin:0 0 4mm 0 !important;
+    object-fit:contain !important;
+    object-position:top center !important;
+    background:#fff !important;
+  }
+
+  .footer{
+    position:static !important;
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    margin:8mm 0 0 0 !important;
+    padding:0 !important;
+    background:#fff !important;
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+
+  .footer img{
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    max-height:18mm !important;
+    margin:0 !important;
+    object-fit:contain !important;
+    object-position:center bottom !important;
+  }
+
+  /* Controles que no deben salir en papel */
+  .actions,
+  .hint,
+  #btnAbrirModal,
+  #btnObjetivo,
+  #agregarTema,
+  #btnInsertarPlantilla,
+  #tipoReunion,
+  .tool,
+  #convocaFiltros,
+  #cambiarConvoca{
+    display:none !important;
+  }
+
+  input, select, textarea{
+    border:0 !important;
+    padding:0 !important;
+    outline:0 !important;
+    background:transparent !important;
+  }
+
   #objetivoView{
     height:auto !important;
-    min-height:48px;
-    overflow:visible;
-    white-space:pre-wrap;
-  }
-  .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
-
-  /* reserva exacta para que el contenido no se monte sobre el pie */
-  body { 
-    margin-bottom: 22mm;           /* ≈ altura del pie */
+    min-height:35px !important;
+    overflow:visible !important;
+    white-space:pre-wrap !important;
+    width:100% !important;
   }
 
-  /* pie institucional fijo al borde de la hoja */
-  .footer { 
-    position: fixed; 
-    left: 0; right: 0; bottom: 0; 
-  }
-  .footer img{
-    display:block; 
-    width:100%; 
-    height: 20mm;                   /* ajusta si tu imagen es más alta/baja */
-    object-fit: contain;
+  /* Participantes: aprovechar espacio */
+  table{
+    width:100% !important;
+    margin-top:3px !important;
+    page-break-inside:auto !important;
   }
 
-  /* Firma del convocante al cierre de la minuta */
+  thead{
+    display:table-header-group !important;
+  }
+
+  tr{
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+
+  th, td{
+    padding:2.5px 4px !important;
+    font-size:9.2pt !important;
+    line-height:1.08 !important;
+  }
+
+  th{
+    padding-top:3px !important;
+    padding-bottom:3px !important;
+  }
+
+  .firma-box{
+    min-height:12mm !important;
+    height:12mm !important;
+  }
+
+  .firma-line{
+    margin:0 5px 2px 5px !important;
+  }
+
+  .firma-txt{
+    font-size:7.5pt !important;
+    margin:0 0 1px 0 !important;
+  }
+
+  /* Reducir espacios */
+  .row,
+  .inline{
+    gap:4px !important;
+  }
+
+  .box{
+    padding:4px !important;
+  }
+
+  .cell{
+    padding:4px !important;
+  }
+
+  .seccion-title{
+    margin:5px 0 3px 0 !important;
+  }
+
+  .act-box{
+    margin-top:5px !important;
+  }
+
+  .panel-body{
+    min-height:25px !important;
+    padding:3px 5px !important;
+  }
+
+  /*
+   * La firma del convocante se mantiene al final del contenido.
+   * Evitamos que se parta, pero no la fijamos a una página.
+   */
   .firma-convocante{
-    width:70mm;
-    margin:7mm auto 1mm;
-    page-break-inside:avoid;
-    break-inside:avoid;
-  }
-  .firma-convocante-titulo{
-    font-size:9pt;
-    margin-bottom:11mm;
-  }
-  .firma-convocante-linea{
-    width:58mm;
-    border-top:1px solid #000;
-    margin-bottom:2mm;
-  }
-  .firma-convocante-nombre{
-    font-size:8.5pt;
-    font-weight:bold;
-  }
-  .firma-convocante-puesto{
-    font-size:7.5pt;
+    margin:5mm auto 2mm !important;
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
   }
 
-  /* altura de firma en papel */
-  .firma-box{ min-height:28mm }
+  /* Evitar una hoja casi vacía solo para la firma/pie */
+  .firma-convocante,
+  .footer{
+    page-break-before:auto !important;
+  }
 }
-  }
 
-  /* estilos de impresión de cajas/tabla */
-  input, select, textarea { border:0; padding:0; outline:0 }
-  .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
-
-  /* reserva exacta para que el contenido no se monte sobre el pie */
-  body { 
-    margin-bottom: 22mm;           /* ≈ altura del pie */
-  }
-
-  /* pie institucional fijo al borde de la hoja */
-  .footer { 
-    position: fixed; 
-    left: 0; right: 0; bottom: 0; 
-  }
-  .footer img{
-    display:block; 
-    width:100%; 
-    height: 20mm;                   /* ajusta si tu imagen es más alta/baja */
-    object-fit: contain;
-  }
-
-  /* altura de firma en papel */
-  .firma-box{ min-height:28mm }
-}
-  }
 </style>
 </head>
 <body>
@@ -522,7 +603,7 @@ function crearFilas(n){
     tbody.appendChild(tr);
   }
 }
-crearFilas(9);
+crearFilas(4);
 
 function addMinutesToTimeStr(hhmm, minutes){ if(!hhmm) return ''; const [h,m]=hhmm.split(':').map(x=>parseInt(x||'0',10)); let t=h*60+m+minutes; t=(t+1440)%1440; const hh=String(Math.floor(t/60)).padStart(2,'0'); const mm=String(t%60).padStart(2,'0'); return `${hh}:${mm}`; }
 horaInicio.addEventListener('change', ()=> { if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }});
