@@ -1,1 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Minuta de Reunión - Formulario (Base para selección múltiple de sucursales)</title>
+<style>
+  :root{ --b:#000; --g:#f6f6f6; }
+  *{ box-sizing:border-box }
+  body{ font-family: Arial, Helvetica, sans-serif; margin:18px 18px 24px; color:#111 }
 
+  /* ====== Encabezado (banner) ====== */
+  .header-img{ display:block; width:100%; height:auto; margin:0 auto 10px auto; }
+
+  .box{ border:2px solid var(--b); padding:10px }
+  .row{ display:grid; grid-template-columns:1fr 240px; gap:10px }
+  .lbl{ font-weight:bold; margin-bottom:6px }
+
+  /* Sucursal / horas / convoca  */
+  .inline{ display:grid; grid-template-columns:1.2fr 1fr 1fr 1.8fr; gap:10px }
+  .cell{ border:2px solid var(--b); padding:8px }
+  .cell .lbl{ margin:0 0 6px 0 }
+
+  input[type="text"], input[type="date"], input[type="time"], select, textarea{
+    width:100%; padding:6px 8px; border:1px solid #333; border-radius:4px; font-size:14px;
+  }
+  textarea{ resize:vertical }
+
+  /* Vista formateada de CONVOCA */
+  #convocaVista .nombre{ font-weight:bold; text-transform:uppercase; }
+  #convocaVista .puesto{ font-size:13px; }
+  .convoca-input{ margin-bottom:6px } /* buscador arriba y vista abajo */
+
+  /* ====== Tabla participantes ====== */
+  table{ width:100%; border-collapse:collapse; margin-top:8px; table-layout:auto; }
+  col.col-num{ width:44px }
+  col.col-firma{ width:24% }
+  th, td{ border:2px solid var(--b); padding:7px 8px; font-size:14px }
+  th{ text-align:center; background:var(--g) }
+  td.num{ text-align:center }
+  td.nombre{ text-transform:uppercase }
+
+  td.asistencia{ padding:0 }
+  .firma-box{ display:flex; flex-direction:column; justify-content:flex-end; min-height:95px; }
+  .firma-line{ border-top:1px solid #000; margin:0 12px 6px 12px; }
+  .firma-txt{ font-size:11px; text-align:center; color:#444; margin:0 0 6px 0 }
+
+  .actions{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap }
+  .btn{ padding:10px 14px; border:0; border-radius:8px; cursor:pointer; font-weight:600; background:#0b4fb3; color:#fff }
+  .btn.secondary{ background:#555 }
+  .btn.small{ padding:6px 10px; font-size:12px }
+  .hint{ font-size:12px; color:#444 }
+
+
+  /* ====== Filtros de personal ====== */
+  .filtros-personal{
+    border:2px solid var(--b);
+    padding:10px;
+    margin-top:10px;
+  }
+  .filtros-title{
+    font-weight:bold;
+    margin-bottom:8px;
+    text-transform:uppercase;
+  }
+  .filtros-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+  .filtro-cell label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:5px;
+    font-size:13px;
+  }
+  .filtro-cell select{
+    width:100%;
+  }
+  .filtro-sucursal{
+    margin-top:10px;
+  }
+  .filtro-info{
+    margin-top:8px;
+    font-size:12px;
+    color:#555;
+  }
+  @media(max-width:800px){
+    .filtros-grid{ grid-template-columns:1fr 1fr; }
+  }
+
+  /* ====== Listas/modales ====== */
+  dialog::backdrop{ background:rgba(0,0,0,.35) }
+  dialog{ border:0; border-radius:12px; padding:0; max-width:760px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,.35); overflow:hidden }
+  .modal-head{ padding:14px 16px; background:#0b4fb3; color:#fff; font-weight:700 }
+  .modal-body{ padding:10px 16px; max-height:60vh; overflow:auto }
+  .modal-foot{ padding:12px 16px; display:flex; gap:10px; justify-content:flex-end; background:#f1f1f1 }
+  .list{ display:grid; grid-template-columns:1fr 240px 180px 100px; gap:8px; align-items:center }
+  .list.head{ font-weight:700; border-bottom:1px solid #ddd; padding-bottom:6px; margin-bottom:6px }
+  .pill{ font-size:12px; padding:2px 8px; border-radius:999px; background:#eef }
+  .srch{ display:flex; gap:8px; margin:8px 0 12px }
+  .srch input{ flex:1 }
+
+  /* ====== Orden del día ====== */
+  .seccion-title{ font-weight:bold; margin:16px 0 6px 0 }
+  .tabla-od{ width:100%; border-collapse:collapse }
+  .tabla-od th, .tabla-od td{ border:2px solid #000; padding:6px 8px; }
+  .tabla-od th{ background:#f6f6f6 }
+  .tabla-od .num{ width:44px; text-align:center }
+  .tabla-od .tema{ text-transform:uppercase }
+
+  /* ====== Último cuadro (plantillas) ====== */
+  .act-box{ border:2px solid #000; margin-top:14px; }
+  .act-title{ font-weight:bold; padding:6px 8px; border-bottom:2px solid #000; text-transform:uppercase; }
+  .panel{ border-top:2px solid #000; }
+  .panel:first-of-type{ border-top:0 }
+  .panel-head{ display:flex; align-items:center; gap:8px; padding:6px 8px }
+  .panel-title{ font-weight:bold; text-transform:uppercase }
+  .act-box, .act-box *{ font-size:13px; } /* mismo tamaño en todo el cuadro */
+  .panel-body{ padding:6px 8px; min-height:48px; outline:none; white-space:pre-wrap }
+  .panel-body[contenteditable="true"]:empty:before{ content: attr(data-placeholder); color:#777; }
+  .panel .tool{ margin-left:auto }
+
+  .proxima{ margin-top:10px; display:grid; grid-template-columns:160px 1fr; border:2px solid #000; align-items:center }
+  .proxima .lbl{ border-right:2px solid #000; padding:6px 8px }
+  .proxima .val{ padding:4px 8px }
+
+  /* ====== Pie ====== */
+  .footer{ margin-top:20px; }
+  .footer img{ width:100%; height:auto; display:block }
+
+  /* ====== Impresión ====== */
+  @media print{
+  /* margen pequeño; el pie institucional va fijo al borde físico */
+  @page { 
+    margin: 12mm 10mm 10mm 10mm;   /* ↓ reduce margen inferior */
+  }
+
+  /* oculta controles */
+  .actions, .hint, #btnAbrirModal, #btnObjetivo, #agregarTema, 
+  #btnInsertarPlantilla, #tipoReunion, .tool, .convoca-input { 
+    display:none !important; 
+  }
+
+  /* estilos de impresión de cajas/tabla */
+  input, select, textarea { border:0; padding:0; outline:0 }
+  .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
+
+  /* reserva exacta para que el contenido no se monte sobre el pie */
+  body { 
+    margin-bottom: 22mm;           /* ≈ altura del pie */
+  }
+
+  /* pie institucional fijo al borde de la hoja */
+  .footer { 
+    position: fixed; 
+    left: 0; right: 0; bottom: 0; 
+  }
+  .footer img{
+    display:block; 
+    width:100%; 
+    height: 20mm;                   /* ajusta si tu imagen es más alta/baja */
+    object-fit: contain;
+  }
+
+  /* altura de firma en papel */
+  .firma-box{ min-height:28mm }
+}
+  }
+
+  /* estilos de impresión de cajas/tabla */
+  input, select, textarea { border:0; padding:0; outline:0 }
+  .cell, .box, th, td, .act-box, .proxima { border:1px solid #000 }
+
+  /* reserva exacta para que el contenido no se monte sobre el pie */
+  body { 
+    margin-bottom: 22mm;           /* ≈ altura del pie */
+  }
+
+  /* pie institucional fijo al borde de la hoja */
+  .footer { 
+    position: fixed; 
+    left: 0; right: 0; bottom: 0; 
+  }
+  .footer img{
+    display:block; 
+    width:100%; 
+    height: 20mm;                   /* ajusta si tu imagen es más alta/baja */
+    object-fit: contain;
+  }
+
+  /* altura de firma en papel */
+  .firma-box{ min-height:28mm }
+}
+  }
+</style>
+</head>
+<body>
+
+<!-- Encabezado institucional (banner completo) -->
+<img class="header-img" src="https://raw.githubusercontent.com/alcnca/minuta/main/encabezado.png" alt="Encabezado ACREIMEX">
+
+<!-- Objetivo / Fecha -->
+<div class="row">
+  <div class="box">
+    <div class="lbl">Objetivo:</div>
+    <textarea id="objetivoView" readonly placeholder="(Capturar objetivo desde la ventana)…" style="text-transform:uppercase"></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn small" id="btnObjetivo">Capturar / editar objetivo</button>
+    </div>
+  </div>
+  <div class="box">
+    <div class="lbl">Fecha:</div>
+    <input type="date" id="fecha">
+  </div>
+</div>
+
+<!-- Sucursal / Horas / Convoca -->
+<div class="inline">
+  <div class="cell">
+    <div class="lbl">Sucursal:</div>
+    <select id="sucursalSelect" disabled><option value="">Seleccione sucursal mediante los filtros…</option></select>
+  </div>
+  <div class="cell">
+    <div class="lbl">Hora inicio</div>
+    <input type="time" id="horaInicio">
+  </div>
+  <div class="cell">
+    <div class="lbl">Hora fin</div>
+    <input type="time" id="horaFin">
+  </div>
+  <div class="cell">
+    <div class="lbl">Convoca:</div>
+    <!-- Convoca: Área -> Figura -> Nombre -->
+    <div id="convocaFiltros">
+      <select id="convocaArea" class="convoca-input">
+        <option value="">SELECCIONA EL ÁREA…</option>
+      </select>
+      <select id="convocaFigura" class="convoca-input" disabled>
+        <option value="">SELECCIONA LA FIGURA…</option>
+      </select>
+      <select id="convoca" class="convoca-input" disabled>
+        <option value="">SELECCIONA QUIÉN CONVOCA…</option>
+      </select>
+    </div>
+    <div id="convocaVista">
+      <div class="nombre" id="convocaNombre"></div>
+      <div class="puesto" id="convocaPuesto"></div>
+    </div>
+    <button type="button" class="btn small" id="cambiarConvoca" style="display:none;margin-top:6px">
+      Cambiar convocante
+    </button>
+  </div>
+</div>
+
+<!-- ====== Filtros de personal ====== -->
+<div class="filtros-personal">
+  <div class="filtros-title">Filtros de personal</div>
+  <div class="filtros-grid">
+    <div class="filtro-cell">
+      <label for="regionSelect">Región:</label>
+      <select id="regionSelect">
+        <option value="">Todas las regiones</option>
+      </select>
+    </div>
+
+    <div class="filtro-cell">
+      <label for="figuraSelect">Figura:</label>
+      <select id="figuraSelect">
+        <option value="">Todas las figuras</option>
+      </select>
+    </div>
+
+    <div class="filtro-cell">
+      <label for="puestoSelect">Puesto:</label>
+      <select id="puestoSelect">
+        <option value="">Todos los puestos</option>
+      </select>
+    </div>
+
+    <div class="filtro-cell">
+      <label for="sucursalSelectFiltro">Sucursal:</label>
+      <select id="sucursalSelectFiltro">
+        <option value="">Todas las sucursales</option>
+      </select>
+    </div>
+  </div>
+  <div class="filtro-info" id="filtroInfo">Mostrando todo el personal.</div>
+</div>
+
+<!-- Botones asistentes -->
+<div class="actions" style="margin-top:10px">
+  <button class="btn" id="btnAbrirModal" disabled>Elegir asistentes de la sucursal</button>
+  <span class="hint">Selector alimentado desde Personal.json (SUCURSAL, NOMBRE_SUC, NOMBRE, PUESTO y REGION).</span>
+</div>
+
+<!-- Participantes -->
+<div class="box" style="margin-top:12px">
+  <div class="lbl" style="margin-bottom:6px">Participantes:</div>
+  <table id="tabla">
+    <colgroup><col class="col-num"><col><col><col><col class="col-firma"></colgroup>
+    <thead>
+      <tr><th>#</th><th>Nombre</th><th>Área</th><th>Sucursal</th><th>Asistencia</th></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- ORDEN DEL DÍA -->
+<div class="seccion-title">ORDEN DEL DÍA</div>
+<table class="tabla-od" id="tablaOD">
+  <thead><tr><th class="num">#</th><th>Tema</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1.</td><td class="tema" contenteditable="true">PASE DE LISTA DEL PERSONAL CONVOCADO</td></tr>
+    <tr><td class="num">2.</td><td class="tema" contenteditable="true">REUNIÓN Y CAPACITACIÓN RESPECTO AL TEMA</td></tr>
+    <tr><td class="num">3.</td><td class="tema" contenteditable="true">RESUMEN DE ACTIVIDADES REALIZADAS Y RECOMENDACIONES GENERALES</td></tr>
+    <tr><td class="num">4.</td><td class="tema" contenteditable="true">CIERRE Y FIRMA DE ASISTENCIA Y COMPROMISOS DE LOS ASISTENTES</td></tr>
+  </tbody>
+</table>
+<div class="actions"><button class="btn small" id="agregarTema">+ Agregar tema</button></div>
+
+<!-- PLANTILLAS + ÚLTIMO CUADRO -->
+<div class="actions" style="margin-top:10px">
+  <select id="tipoReunion">
+    <option value="capacitacion">Capacitación</option>
+    <option value="seguimiento">Seguimiento de recuperación</option>
+    <option value="general">Reunión general de sucursal</option>
+    <option value="capacitacion_compromisos">Capacitación + compromisos</option>
+  </select>
+  <button class="btn" id="btnInsertarPlantilla">Insertar plantilla</button>
+</div>
+
+<section class="act-box" id="actBox">
+  <div class="act-title" id="actTitulo">ACTIVIDADES REALIZADAS Y PUNTOS RELEVANTES</div>
+  <div id="actContenido"></div>
+</section>
+
+<!-- Próxima reunión -->
+<div class="proxima" style="margin-top:8px">
+  <div class="lbl"><strong>Próxima Reunión:</strong></div>
+  <div class="val"><input type="date" id="proxReunionDate"></div>
+</div>
+
+<div class="actions">
+  <button class="btn" onclick="window.print()">Imprimir</button>
+</div>
+
+<!-- Pie institucional -->
+<footer class="footer">
+  <img src="https://raw.githubusercontent.com/alcnca/minuta/main/piepagina.png" alt="Pie de página">
+</footer>
+
+<!-- Modales existentes (asistentes / objetivo / asesores) -->
+<dialog id="modal">
+  <div class="modal-head" id="modalParticipantesTitulo">Seleccionar participantes — todos seleccionados por defecto</div>
+  <div class="modal-body">
+    <div class="srch"><input id="buscar" type="text" placeholder="Buscar por nombre, puesto o sucursal…"><span class="pill" id="cuentaSeleccionados">0 seleccionados</span></div>
+    <div class="list head"><div>Nombre</div><div>Puesto</div><div>Sucursal</div><div>Incluir</div></div>
+    <div id="contenedorPersonal"></div>
+  </div>
+  <div class="modal-foot"><button class="btn secondary" id="cerrarModal">Cancelar</button><button class="btn" id="confirmarSeleccion">Agregar a la minuta</button></div>
+</dialog>
+
+<dialog id="modalObjetivo">
+  <div class="modal-head">Capturar objetivo de la reunión</div>
+  <div class="modal-body"><textarea id="objetivoInput" placeholder="Escribe aquí el objetivo… (se guardará en MAYÚSCULAS)" style="width:100%; min-height:120px;"></textarea></div>
+  <div class="modal-foot"><button class="btn secondary" id="cancelObjetivo">Cancelar</button><button class="btn" id="saveObjetivo">Guardar objetivo</button></div>
+</dialog>
+
+<dialog id="modalAsesores">
+  <div class="modal-head">Elegir asesores de la sucursal</div>
+  <div class="modal-body">
+    <div class="srch"><input id="buscarAsesor" type="text" placeholder="Buscar asesor…"><span class="pill" id="cuentaAsesores">0 seleccionados</span></div>
+    <div class="list head"><div>Nombre</div><div>Puesto</div><div>Incluir</div></div>
+    <div id="contenedorAsesores"></div>
+  </div>
+  <div class="modal-foot"><button class="btn secondary" id="cerrarAsesores">Cancelar</button><button class="btn" id="confirmarAsesores">Insertar en viñetas</button></div>
+</dialog>
+
+<script>
+/* ====== Datos ====== */
+const DATA_URL = "https://raw.githubusercontent.com/alcnca/minuta/refs/heads/main/Personal.json";
+const CONVOCA_LIST = [];
+
+/* ====== Refs ====== */
+const tbody = document.getElementById('tbody');
+const modal = document.getElementById('modal');
+const contPersonal = document.getElementById('contenedorPersonal');
+const buscar = document.getElementById('buscar');
+const cuenta = document.getElementById('cuentaSeleccionados');
+const sucSel = document.getElementById('sucursalSelect');
+const btnAbrirModal = document.getElementById('btnAbrirModal');
+const horaInicio = document.getElementById('horaInicio');
+const horaFin = document.getElementById('horaFin');
+const convocaFiltros = document.getElementById('convocaFiltros');
+const convocaArea = document.getElementById('convocaArea');
+const convocaFigura = document.getElementById('convocaFigura');
+const convocaInput = document.getElementById('convoca');
+const cambiarConvoca = document.getElementById('cambiarConvoca');
+const convocaNombre = document.getElementById('convocaNombre');
+const convocaPuesto = document.getElementById('convocaPuesto');
+const objetivoView = document.getElementById('objetivoView');
+const modalObjetivo = document.getElementById('modalObjetivo');
+const objetivoInput = document.getElementById('objetivoInput');
+const tipoReunion = document.getElementById('tipoReunion');
+const btnInsertarPlantilla = document.getElementById('btnInsertarPlantilla');
+const actTitulo = document.getElementById('actTitulo');
+const actContenido = document.getElementById('actContenido');
+const proxDate = document.getElementById('proxReunionDate');
+
+/* ====== Helpers ====== */
+function crearFilas(n){
+  tbody.innerHTML='';
+  for(let i=1;i<=Math.max(1,n);i++){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="num">${i}.</td>
+      <td class="nombre"></td>
+      <td class="area"></td>
+      <td class="sucursal"></td>
+      <td class="asistencia">
+        <div class="firma-box">
+          <div class="firma-line"></div>
+          <p class="firma-txt">Firma</p>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+}
+crearFilas(9);
+
+function addMinutesToTimeStr(hhmm, minutes){ if(!hhmm) return ''; const [h,m]=hhmm.split(':').map(x=>parseInt(x||'0',10)); let t=h*60+m+minutes; t=(t+1440)%1440; const hh=String(Math.floor(t/60)).padStart(2,'0'); const mm=String(t%60).padStart(2,'0'); return `${hh}:${mm}`; }
+horaInicio.addEventListener('change', ()=> { if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }});
+
+/* ====== CONVOCA: datalist + vista completa ====== */
+function normalizarTextoConvoca(v){
+  return String(v || '')
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .trim();
+}
+
+function esRecuperacionConvoca(puesto){
+  const p = normalizarTextoConvoca(puesto);
+
+  // Solo puestos relacionados con Recuperación.
+  return /RECUPERACION|COBRANZA/.test(p);
+}
+
+function figuraRecuperacion(puesto){
+  const p = normalizarTextoConvoca(puesto);
+
+  // La figura se conserva con el nombre funcional del puesto,
+  // evitando mostrar nombres antes de elegir la figura.
+  if(/DIRECTOR.*RECUPERACION|RECUPERACION.*DIRECTOR/.test(p)){
+    return 'DIRECTOR DE RECUPERACIÓN';
+  }
+
+  if(/GERENTE.*RECUPERACION.*EXTRAJUDICIAL|RECUPERACION.*EXTRAJUDICIAL.*GERENTE/.test(p)){
+    return 'GERENTE DE RECUPERACIÓN EXTRAJUDICIAL';
+  }
+
+  if(/GERENTE.*RECUPERACION.*JUDICIAL|RECUPERACION.*JUDICIAL.*GERENTE/.test(p)){
+    return 'GERENTE DE RECUPERACIÓN JUDICIAL';
+  }
+
+  if(/GERENTE.*RECUPERACION|RECUPERACION.*GERENTE/.test(p)){
+    return 'GERENTE DE RECUPERACIÓN';
+  }
+
+  if(/COORDINADOR.*RECUPERACION|RECUPERACION.*COORDINADOR/.test(p)){
+    return 'COORDINADOR DE RECUPERACIÓN';
+  }
+
+  if(/ASISTENTE.*RECUPERACION|RECUPERACION.*ASISTENTE/.test(p)){
+    return 'ASISTENTE DE RECUPERACIÓN';
+  }
+
+  if(/GESTOR.*RECUPERACION|RECUPERACION.*GESTOR/.test(p)){
+    return 'GESTOR DE RECUPERACIÓN';
+  }
+
+  if(/SUPERVISOR.*RECUPERACION|RECUPERACION.*SUPERVISOR/.test(p)){
+    return 'SUPERVISOR DE RECUPERACIÓN';
+  }
+
+  if(/ANALISTA.*RECUPERACION|RECUPERACION.*ANALISTA/.test(p)){
+    return 'ANALISTA DE RECUPERACIÓN';
+  }
+
+  return '';
+}
+
+function obtenerConvocantesRecuperacion(){
+  /*
+    Criterio correcto:
+    PRIMERA COLUMNA DEL JSON -> SUCURSAL = CTRAL.
+    De ahí únicamente se consideran puestos relacionados con Recuperación.
+  */
+  return personas.filter(p =>
+    normalizarTextoConvoca(p.sucursal) === 'CTRAL' &&
+    esRecuperacionConvoca(p.puesto)
+  );
+}
+
+function poblarAreasConvoca(){
+  convocaArea.innerHTML =
+    '<option value="">SELECCIONA EL ÁREA…</option>';
+
+  convocaFigura.innerHTML =
+    '<option value="">SELECCIONA LA FIGURA…</option>';
+  convocaFigura.disabled = true;
+
+  convocaInput.innerHTML =
+    '<option value="">SELECCIONA QUIÉN CONVOCA…</option>';
+  convocaInput.disabled = true;
+
+  const centralRecuperacion = obtenerConvocantesRecuperacion();
+
+  // Por ahora el primer nivel es Recuperación.
+  // La estructura queda preparada para agregar posteriormente otras áreas.
+  if(centralRecuperacion.length){
+    const opt = document.createElement('option');
+    opt.value = 'RECUPERACION';
+    opt.textContent = 'RECUPERACIÓN';
+    convocaArea.appendChild(opt);
+  }
+
+  actualizarVistaConvoca('');
+}
+
+function cargarFigurasConvoca(){
+  convocaFigura.innerHTML =
+    '<option value="">SELECCIONA LA FIGURA…</option>';
+
+  convocaInput.innerHTML =
+    '<option value="">SELECCIONA QUIÉN CONVOCA…</option>';
+  convocaInput.disabled = true;
+
+  if(convocaArea.value !== 'RECUPERACION'){
+    convocaFigura.disabled = true;
+    actualizarVistaConvoca('');
+    return;
+  }
+
+  const figuras = [...new Set(
+    obtenerConvocantesRecuperacion()
+      .map(p => figuraRecuperacion(p.puesto))
+      .filter(Boolean)
+  )];
+
+  const prioridad = [
+    'DIRECTOR DE RECUPERACIÓN',
+    'GERENTE DE RECUPERACIÓN EXTRAJUDICIAL',
+    'GERENTE DE RECUPERACIÓN JUDICIAL',
+    'GERENTE DE RECUPERACIÓN',
+    'COORDINADOR DE RECUPERACIÓN',
+    'ASISTENTE DE RECUPERACIÓN',
+    'GESTOR DE RECUPERACIÓN',
+    'SUPERVISOR DE RECUPERACIÓN',
+    'ANALISTA DE RECUPERACIÓN'
+  ];
+
+  figuras.sort((a,b)=>{
+    const ia = prioridad.indexOf(a);
+    const ib = prioridad.indexOf(b);
+
+    if(ia !== -1 && ib !== -1) return ia - ib;
+    if(ia !== -1) return -1;
+    if(ib !== -1) return 1;
+
+    return a.localeCompare(b,'es');
+  });
+
+  figuras.forEach(figura=>{
+    const opt = document.createElement('option');
+    opt.value = figura;
+    opt.textContent = figura;
+    convocaFigura.appendChild(opt);
+  });
+
+  convocaFigura.disabled = figuras.length === 0;
+  actualizarVistaConvoca('');
+}
+
+function cargarNombresConvoca(){
+  convocaInput.innerHTML =
+    '<option value="">SELECCIONA QUIÉN CONVOCA…</option>';
+
+  if(convocaArea.value !== 'RECUPERACION' || !convocaFigura.value){
+    convocaInput.disabled = true;
+    actualizarVistaConvoca('');
+    return;
+  }
+
+  const candidatos = obtenerConvocantesRecuperacion()
+    .filter(p => figuraRecuperacion(p.puesto) === convocaFigura.value)
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+
+  candidatos.forEach((p, idx)=>{
+    const opt = document.createElement('option');
+
+    opt.value = `${p.sucursal}|${p.usuario || idx}`;
+    opt.textContent = p.nombre.toUpperCase();
+
+    opt.dataset.nombre = p.nombre;
+    opt.dataset.puesto = p.puesto;
+    opt.dataset.sucursal = p.sucursal;
+    opt.dataset.nombreSucursal = p.nombreSucursal;
+
+    convocaInput.appendChild(opt);
+  });
+
+  convocaInput.disabled = candidatos.length === 0;
+
+  if(!candidatos.length){
+    convocaInput.innerHTML =
+      '<option value="">NO HAY PERSONAL PARA ESTA FIGURA</option>';
+  }
+
+  actualizarVistaConvoca('');
+}
+
+function poblarConvoca(){
+  poblarAreasConvoca();
+}
+
+function actualizarVistaConvoca(v){
+  const parts = (v||'').toUpperCase().split('—');
+  const nombre = (parts[0]||'').trim();
+  const puesto = (parts[1]||'').trim();
+  convocaNombre.textContent = nombre;
+  convocaPuesto.textContent = puesto ? puesto : '';
+}
+function ocultarFiltrosConvoca(){
+  convocaFiltros.style.display = 'none';
+  cambiarConvoca.style.display = 'inline-block';
+}
+
+function mostrarFiltrosConvoca(){
+  convocaFiltros.style.display = 'block';
+  cambiarConvoca.style.display = 'none';
+}
+
+cambiarConvoca.addEventListener('click', ()=>{
+  mostrarFiltrosConvoca();
+  convocaInput.value = '';
+  actualizarVistaConvoca('');
+});
+
+convocaArea.addEventListener('change', ()=>{
+  cargarFigurasConvoca();
+});
+
+convocaFigura.addEventListener('change', ()=>{
+  cargarNombresConvoca();
+});
+
+convocaInput.addEventListener('change', ()=>{
+  const opt = convocaInput.options[convocaInput.selectedIndex];
+
+  if(!opt || !convocaInput.value){
+    actualizarVistaConvoca('');
+    return;
+  }
+
+  actualizarVistaConvoca(
+    `${opt.dataset.nombre || ''} — ${opt.dataset.puesto || ''}`
+  );
+
+  // Una vez elegido el convocante, ocultamos los filtros para
+  // dejar limpia la minuta. Se puede volver a cambiar con el botón.
+  ocultarFiltrosConvoca();
+});
+
+/* ====== Fechas ====== */
+function addMonths(d, m){ const x=new Date(d.getTime()); x.setMonth(x.getMonth()+m); if(x.getDate()!==d.getDate()) x.setDate(0); return x; }
+function dateToInput(d){ return d.toISOString().slice(0,10); }
+const now = new Date();
+document.getElementById('fecha').valueAsDate = now;
+proxDate.value = dateToInput(addMonths(now, 2));
+let proxDateEdited = false;
+proxDate.addEventListener('input', ()=> proxDateEdited = true);
+document.getElementById('fecha').addEventListener('input', e=>{ if(!proxDateEdited){ const base=new Date(e.target.value||new Date()); proxDate.value = dateToInput(addMonths(base,2)); }});
+
+/* ====== Personal y filtros desde JSON ====== */
+let personas = [];
+let personasPorSucursal = {};
+let listaActual = [];
+
+const regionSelect = document.getElementById('regionSelect');
+const figuraSelect = document.getElementById('figuraSelect');
+const puestoSelect = document.getElementById('puestoSelect');
+const sucursalSelectFiltro = document.getElementById('sucursalSelectFiltro');
+const filtroInfo = document.getElementById('filtroInfo');
+
+function obtenerFigura(puesto){
+  const p = (puesto || '').toUpperCase().trim();
+
+  if (/GERENTE/.test(p)) return 'GERENTE';
+  if (/COORDINADOR/.test(p)) return 'COORDINADOR';
+  if (/ASESOR/.test(p)) return 'ASESOR';
+  if (/GESTOR/.test(p)) return 'GESTOR';
+  if (/SUPERVISOR/.test(p)) return 'SUPERVISOR';
+  if (/PROMOTOR/.test(p)) return 'PROMOTOR';
+  if (/AUXILIAR/.test(p)) return 'AUXILIAR';
+  if (/ANALISTA/.test(p)) return 'ANALISTA';
+  if (/DIRECTOR/.test(p)) return 'DIRECTOR';
+  if (/SUBDIRECTOR/.test(p)) return 'SUBDIRECTOR';
+  if (/JEFE/.test(p)) return 'JEFE';
+
+  return p ? 'OTROS' : '';
+}
+
+function normalizarPersona(row){
+  const sucursal = String(row.SUCURSAL ?? '').trim();
+  const nombreSucursal = String(row.NOMBRE_SUC ?? '').trim();
+  const nombre = String(row.NOMBRE ?? '').trim();
+  const puesto = String(row.PUESTO ?? '').trim();
+  const region = String(row.REGION ?? '').trim().toUpperCase();
+
+  if(!sucursal || !nombre) return null;
+
+  return {
+    sucursal,
+    nombreSucursal,
+    nombre,
+    puesto,
+    region,
+    figura: obtenerFigura(puesto),
+    usuario: String(row.USUARIO ?? '').trim(),
+    identificador: String(row.IDENTIFICADOR ?? '').trim(),
+    numSocio: String(row.NUM_SOCIO ?? '').trim(),
+    celular: String(row.CELULAR ?? '').trim(),
+    correo: String(row.CORREO ?? '').trim(),
+    correoTrabajo: String(row.CORREOTRABAJO ?? '').trim(),
+    raw: row
+  };
+}
+
+function limpiarSelect(select, texto){
+  select.innerHTML = '';
+  const opt = document.createElement('option');
+  opt.value = '';
+  opt.textContent = texto;
+  select.appendChild(opt);
+}
+
+function valoresUnicos(arr, campo){
+  return [...new Set(
+    arr.map(x => String(x[campo] ?? '').trim()).filter(Boolean)
+  )].sort((a,b)=>a.localeCompare(b,'es'));
+}
+
+function poblarSelect(select, valores, textoTodos, valorActual=''){
+  limpiarSelect(select, textoTodos);
+  valores.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
+  });
+
+  if(valores.includes(valorActual)){
+    select.value = valorActual;
+  }else{
+    select.value = '';
+  }
+}
+
+function obtenerBaseFiltrada(excluir){
+  let arr = personas.slice();
+
+  if(excluir !== 'region' && regionSelect.value){
+    arr = arr.filter(p => p.region === regionSelect.value);
+  }
+
+  if(excluir !== 'figura' && figuraSelect.value){
+    arr = arr.filter(p => p.figura === figuraSelect.value);
+  }
+
+  if(excluir !== 'puesto' && puestoSelect.value){
+    arr = arr.filter(p => p.puesto === puestoSelect.value);
+  }
+
+  if(excluir !== 'sucursal' && sucursalSelectFiltro.value){
+    arr = arr.filter(p => p.sucursal === sucursalSelectFiltro.value);
+  }
+
+  return arr;
+}
+
+function nombreSucursalPorCodigo(codigo){
+  const p = personas.find(x => x.sucursal === codigo);
+  return p ? (p.nombreSucursal || codigo) : codigo;
+}
+
+function actualizarFiltros(cambio){
+  const valoresAntes = {
+    region: regionSelect.value,
+    figura: figuraSelect.value,
+    puesto: puestoSelect.value,
+    sucursal: sucursalSelectFiltro.value
+  };
+
+  // Región
+  const baseRegion = obtenerBaseFiltrada('region');
+  poblarSelect(
+    regionSelect,
+    valoresUnicos(baseRegion, 'region'),
+    'Todas las regiones',
+    valoresAntes.region
+  );
+
+  // Figura
+  const baseFigura = obtenerBaseFiltrada('figura');
+  poblarSelect(
+    figuraSelect,
+    valoresUnicos(baseFigura, 'figura'),
+    'Todas las figuras',
+    valoresAntes.figura
+  );
+
+  // Puesto
+  const basePuesto = obtenerBaseFiltrada('puesto');
+  poblarSelect(
+    puestoSelect,
+    valoresUnicos(basePuesto, 'puesto'),
+    'Todos los puestos',
+    valoresAntes.puesto
+  );
+
+  // Sucursal: se muestra código + nombre
+  const baseSucursal = obtenerBaseFiltrada('sucursal');
+  const sucMap = new Map();
+
+  baseSucursal.forEach(p=>{
+    if(!sucMap.has(p.sucursal)){
+      sucMap.set(p.sucursal, p.nombreSucursal || p.sucursal);
+    }
+  });
+
+  limpiarSelect(sucursalSelectFiltro, 'Todas las sucursales');
+
+  [...sucMap.entries()]
+    .sort((a,b)=>{
+      const na = `${a[0]} ${a[1]}`;
+      const nb = `${b[0]} ${b[1]}`;
+      return na.localeCompare(nb,'es');
+    })
+    .forEach(([codigo,nombre])=>{
+      const opt = document.createElement('option');
+      opt.value = codigo;
+      opt.textContent = `${codigo} - ${nombre}`;
+      sucursalSelectFiltro.appendChild(opt);
+    });
+
+  if(sucMap.has(valoresAntes.sucursal)){
+    sucursalSelectFiltro.value = valoresAntes.sucursal;
+  }else{
+    sucursalSelectFiltro.value = '';
+  }
+
+  // La sucursal principal de la minuta sigue siendo la selección final.
+  sincronizarSucursalPrincipal();
+
+  const resultado = obtenerBaseFiltrada();
+  filtroInfo.textContent =
+    `Filtro actual: ${resultado.length} registro${resultado.length === 1 ? '' : 's'} de personal.`;
+}
+
+function sincronizarSucursalPrincipal(){
+  const codigo = sucursalSelectFiltro.value;
+
+  if(!codigo){
+    sucSel.innerHTML = '<option value="">Todas las sucursales</option>';
+    sucSel.disabled = false;
+    const hayPersonal = obtenerBaseFiltrada().length > 0;
+    btnAbrirModal.disabled = !hayPersonal;
+    return;
+  }
+
+  const nombre = nombreSucursalPorCodigo(codigo);
+  sucSel.innerHTML = '';
+  const opt = document.createElement('option');
+  opt.value = codigo;
+  opt.textContent = `${codigo} - ${nombre}`;
+  sucSel.appendChild(opt);
+  sucSel.value = codigo;
+  sucSel.disabled = false;
+  btnAbrirModal.disabled = false;
+}
+
+async function cargarJSON(){
+  try{
+    const res = await fetch(DATA_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Personal.json fue generado por Excel/VBA y puede estar en ANSI/Windows-1252.
+    // Se decodifica explícitamente para conservar acentos como Ó, É, Í, Ñ, etc.
+    const buffer = await res.arrayBuffer();
+    const jsonTexto = new TextDecoder('windows-1252').decode(buffer);
+    const data = JSON.parse(jsonTexto);
+
+    const arr = Array.isArray(data)
+      ? data
+      : (Array.isArray(data?.data) ? data.data : []);
+
+    personas = arr
+      .map(normalizarPersona)
+      .filter(Boolean);
+
+    personasPorSucursal = {};
+
+    personas.forEach(p=>{
+      (personasPorSucursal[p.sucursal] ??= []).push(p);
+    });
+
+    // Inicializa filtros
+    actualizarFiltros();
+
+    // Al cargar, no hay sucursal seleccionada todavía.
+    sucSel.innerHTML = '<option value="">Todas las sucursales</option>';
+    sucSel.disabled = false;
+    btnAbrirModal.disabled = personas.length === 0;
+    poblarConvoca();
+
+  }catch(e){
+    console.error(e);
+    sucSel.innerHTML = '<option value="">No se pudo cargar el JSON</option>';
+    sucSel.disabled = true;
+    btnAbrirModal.disabled = true;
+    filtroInfo.textContent = 'No se pudo cargar Personal.json.';
+  }
+}
+
+regionSelect.addEventListener('change', ()=>{
+  actualizarFiltros('region');
+  poblarConvoca();
+});
+figuraSelect.addEventListener('change', ()=>{
+  actualizarFiltros('figura');
+});
+puestoSelect.addEventListener('change', ()=>{
+  actualizarFiltros('puesto');
+  poblarConvoca();
+});
+
+sucursalSelectFiltro.addEventListener('change', ()=>{
+  actualizarFiltros('sucursal');
+  sincronizarSucursalPrincipal();
+});
+
+cargarJSON();
+
+/* ====== Modal asistentes (tabla principal) ====== */
+function renderLista(personas){
+  listaActual = personas.map((p,idx)=> ({
+    ...p,
+    nombre: String(p.nombre || p.NOMBRE || '').trim(),
+    puesto: String(p.puesto || p.PUESTO || '').trim(),
+    idx,
+    checked:true
+  })).filter(p => p.nombre);
+
+  applyFilter('');
+}
+function applyFilter(q){
+  const txt=(q||'').toLowerCase().trim();
+  contPersonal.innerHTML='';
+
+  listaActual.forEach(item=>{
+    const nombre = String(item.nombre || '');
+    const puesto = String(item.puesto || '');
+    const sucursal = String(item.sucursal || '');
+    const nombreSucursal = String(item.nombreSucursal || '');
+
+    const textoSucursal = `${sucursal} ${nombreSucursal}`.toLowerCase();
+
+    const ok =
+      !txt ||
+      nombre.toLowerCase().includes(txt) ||
+      puesto.toLowerCase().includes(txt) ||
+      textoSucursal.includes(txt);
+
+    if(!ok) return;
+
+    const row=document.createElement('div');
+    row.className='list';
+
+    row.innerHTML = `
+      <div>${nombre.toUpperCase()}</div>
+      <div>${puesto}</div>
+      <div><strong>${sucursal}</strong>${nombreSucursal ? ` - ${nombreSucursal}` : ''}</div>
+      <div style="text-align:center">
+        <input type="checkbox"
+               data-idx="${item.idx}"
+               ${item.checked?'checked':''}>
+      </div>`;
+
+    contPersonal.appendChild(row);
+  });
+
+  cuenta.textContent = `${listaActual.filter(x=>x.checked).length} seleccionados`;
+}
+document.getElementById('buscar')?.addEventListener('input', e=> applyFilter(e.target.value));
+contPersonal.addEventListener('change', (e)=>{ const idx=+e.target.getAttribute('data-idx'); const it=listaActual.find(x=>x.idx===idx); if(it){ it.checked=e.target.checked; } cuenta.textContent=`${listaActual.filter(x=>x.checked).length} seleccionados`; });
+btnAbrirModal.addEventListener('click', ()=>{
+  const suc = sucursalSelectFiltro.value;
+
+  // Respeta los filtros seleccionados.
+  // Si hay sucursal, limita a esa sucursal.
+  // Si no hay sucursal, muestra todo el personal que cumpla
+  // Región + Figura + Puesto.
+  const filtradas = personas.filter(p =>
+    (!regionSelect.value || p.region === regionSelect.value) &&
+    (!figuraSelect.value || p.figura === figuraSelect.value) &&
+    (!puestoSelect.value || p.puesto === puestoSelect.value) &&
+    (!suc || p.sucursal === suc)
+  );
+
+  if(!filtradas.length){
+    alert('No hay personal que coincida con los filtros seleccionados.');
+    return;
+  }
+
+  renderLista(filtradas);
+
+  const tituloModal = document.getElementById('modalParticipantesTitulo');
+  if(tituloModal){
+    if(suc){
+      const sucObj = personas.find(p => p.sucursal === suc);
+      const nombreSuc = sucObj?.nombreSucursal || '';
+      tituloModal.textContent =
+        `Seleccionar participantes — ${suc}${nombreSuc ? ' - ' + nombreSuc : ''}`;
+    }else{
+      tituloModal.textContent =
+        'Seleccionar participantes — todas las sucursales';
+    }
+  }
+
+  try{ modal.showModal(); }catch{ modal.setAttribute('open','true'); }
+});
+document.getElementById('cerrarModal').addEventListener('click', ()=> { try{ modal.close(); }catch{ modal.removeAttribute('open'); } });
+document.getElementById('confirmarSeleccion').addEventListener('click', ()=>{
+  const sel = listaActual.filter(x=>x.checked);
+  if(!sel.length){ alert('Selecciona al menos una persona.'); return; }
+  crearFilas(sel.length);
+  const filas = [...tbody.querySelectorAll('tr')];
+  sel.forEach((p,i)=>{
+    const t=filas[i].children;
+    t[1].textContent = String(p.nombre || '').toUpperCase();
+    t[2].textContent = String(p.puesto || '');
+
+    const codigo = String(p.sucursal || '').trim();
+    const nombreSuc = String(p.nombreSucursal || '').trim();
+    t[3].textContent = codigo
+      ? `${codigo}${nombreSuc ? ' - ' + nombreSuc : ''}`
+      : '';
+  });
+  try{ modal.close(); }catch{ modal.removeAttribute('open'); }
+});
+
+/* ====== Objetivo (modal) ====== */
+document.getElementById('btnObjetivo').addEventListener('click', ()=>{ objetivoInput.value=objetivoView.value; try{ modalObjetivo.showModal(); }catch{ modalObjetivo.setAttribute('open','true'); } });
+document.getElementById('cancelObjetivo').addEventListener('click', ()=>{ try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
+document.getElementById('saveObjetivo').addEventListener('click', ()=>{ objetivoView.value=(objetivoInput.value||'').toUpperCase(); try{ modalObjetivo.close(); }catch{ modalObjetivo.removeAttribute('open'); } });
+
+/* ====== Plantillas del último cuadro (con viñetas y fecha mini) ====== */
+const PLANTILLAS = {
+  capacitacion: {
+    titulo: "ACTIVIDADES REALIZADAS Y PUNTOS RELEVANTES RESPECTO A LA CAPACITACIÓN",
+    paneles: [
+      {key:"fechaVisita", titulo:"FECHA DE VISITA:", tipo:"fecha"},
+      {key:"acompanamiento", titulo:"ACOMPAÑAMIENTO EN CAMPO A LOS ASESORES:", tipo:"viñetas_asesores"},
+      {titulo:"SE DETECTARON LAS SIGUIENTES INCIDENCIAS:", tipo:"viñetas"},
+      {titulo:"SE REALIZA LA CAPACITACIÓN CORRESPONDIENTE EL DÍA DE HOY REFORZANDO LOS SIGUIENTES TEMAS:", tipo:"viñetas"},
+      {titulo:"SE REALIZAN LAS SIGUIENTES RECOMENDACIONES:", tipo:"viñetas"},
+      {titulo:"SE CUESTIONÓ SI EXISTE ALGUNA DUDA O PROPUESTA RESPECTO AL TEMA:", tipo:"viñetas"},
+      {titulo:"SE ESTABLECIERON LOS SIGUIENTES COMPROMISOS:", tipo:"viñetas"}
+    ]
+  },
+  seguimiento: {
+    titulo: "ACTIVIDADES Y PUNTOS RELEVANTES DE SEGUIMIENTO A RECUPERACIÓN",
+    paneles: [
+      {key:"fechaVisita", titulo:"FECHA DE VISITA / REUNIÓN:", tipo:"fecha"},
+      {titulo:"ANÁLISIS DE CARTERA (BANDAS/ANTIGÜEDAD):", tipo:"viñetas"},
+      {titulo:"GESTIONES REALIZADAS POR LOS ASESORES:", tipo:"viñetas"},
+      {titulo:"INCIDENCIAS / BLOQUEOS:", tipo:"viñetas"},
+      {titulo:"ACUERDOS Y RESPONSABLES:", tipo:"viñetas"}
+    ]
+  },
+  general: {
+    titulo: "ACTIVIDADES Y PUNTOS RELEVANTES DE LA REUNIÓN",
+    paneles: [
+      {key:"fechaVisita", titulo:"FECHA DE REUNIÓN:", tipo:"fecha"},
+      {titulo:"TEMAS TRATADOS:", tipo:"viñetas"},
+      {titulo:"ACUERDOS:", tipo:"viñetas"},
+      {titulo:"PENDIENTES:", tipo:"viñetas"}
+    ]
+  }
+};
+
+function seedBullet(div){ if(div.innerText.trim()==="") div.innerHTML = "✤ "; }
+function attachBulletBehavior(div){
+  seedBullet(div);
+  div.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); document.execCommand('insertHTML', false, '<br>✤ '); } });
+}
+function buildPanel(p){
+  const wrap=document.createElement('div'); wrap.className='panel';
+  const head=document.createElement('div'); head.className='panel-head';
+  const title=document.createElement('div'); title.className='panel-title'; title.textContent=p.titulo; head.appendChild(title);
+  if(p.tipo==='viñetas_asesores'){ const btn=document.createElement('button'); btn.type='button'; btn.className='btn small tool'; btn.textContent='Elegir asesores de la sucursal'; btn.addEventListener('click', openAsesoresModal); head.appendChild(btn); }
+  wrap.appendChild(head);
+  let body;
+  if(p.tipo==='fecha'){ body=document.createElement('div'); body.className='panel-body'; body.innerHTML=`<input type="date" id="fechaVisitaInput" style="width:auto">`; }
+  else{ body=document.createElement('div'); body.className='panel-body'; body.setAttribute('contenteditable','true'); body.setAttribute('data-placeholder','Escribe aquí…'); attachBulletBehavior(body); }
+  wrap.appendChild(body); return wrap;
+}
+function insertarPlantilla(key){ const cfg=PLANTILLAS[key]||PLANTILLAS.capacitacion; actTitulo.textContent=cfg.titulo; actContenido.innerHTML=''; cfg.paneles.forEach(p=>actContenido.appendChild(buildPanel(p))); }
+btnInsertarPlantilla.addEventListener('click', ()=> insertarPlantilla(tipoReunion.value));
+insertarPlantilla('capacitacion');
+
+/* ====== Modal ASESORES (para el panel acompañamiento) ====== */
+const modalAsesores=document.getElementById('modalAsesores');
+const contAsesores=document.getElementById('contenedorAsesores');
+const buscarAsesor=document.getElementById('buscarAsesor');
+const cuentaAsesores=document.getElementById('cuentaAsesores');
+let asesoresLista=[];
+function openAsesoresModal(){
+  const suc = document.getElementById('sucursalSelect').value;
+  if(!suc){ alert('Primero selecciona una sucursal.'); return; }
+  const personas = (personasPorSucursal[suc] || []).filter(p => /ASESOR/i.test(p.puesto||''));
+  if(!personas.length){ alert('No hay registros con puesto “ASESOR” en esa sucursal.'); return; }
+  asesoresLista = personas.map((p,idx)=> ({...p, idx, checked:false}));
+  renderAsesores('');
+  try{ modalAsesores.showModal(); }catch{ modalAsesores.setAttribute('open','true'); }
+}
+function renderAsesores(q){
+  const txt=(q||'').toLowerCase().trim(); contAsesores.innerHTML=''; asesoresLista.forEach(it=>{
+    const ok=!txt || it.nombre.toLowerCase().includes(txt) || (it.puesto||'').toLowerCase().includes(txt); if(!ok) return;
+    const row=document.createElement('div'); row.className='list'; row.innerHTML=`<div>${it.nombre.toUpperCase()}</div><div>${it.puesto}</div><div style="text-align:center"><input type="checkbox" data-idx="${it.idx}" ${it.checked?'checked':''}></div>`; contAsesores.appendChild(row);
+  }); cuentaAsesores.textContent = `${asesoresLista.filter(x=>x.checked).length} seleccionados`; }
+buscarAsesor.addEventListener('input', e=> renderAsesores(e.target.value));
+contAsesores.addEventListener('change', (e)=>{ const idx=+e.target.getAttribute('data-idx'); const it=asesoresLista.find(x=>x.idx===idx); if(it){ it.checked=e.target.checked; } cuentaAsesores.textContent=`${asesoresLista.filter(x=>x.checked).length} seleccionados`; });
+document.getElementById('cerrarAsesores').addEventListener('click', ()=> { try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); } });
+document.getElementById('confirmarAsesores').addEventListener('click', ()=>{
+  const sel = asesoresLista.filter(x=>x.checked); if(!sel.length){ alert('Selecciona al menos un asesor.'); return; }
+  const acomp = [...document.querySelectorAll('.panel')].find(p => p.querySelector('.panel-title')?.textContent.toUpperCase().includes('ACOMPAÑAMIENTO'));
+  if(acomp){ const body = acomp.querySelector('.panel-body[contenteditable]'); if(body){ body.innerHTML = sel.map(s=>`✤ ${s.nombre.toUpperCase()}`).join('<br>') + '<br>✤ '; attachBulletBehavior(body); } }
+  try{ modalAsesores.close(); }catch{ modalAsesores.removeAttribute('open'); }
+});
+</script>
+</body>
+</html>
