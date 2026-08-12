@@ -387,11 +387,21 @@ async function cargarJSON(){
     const arr = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
     personasPorSucursal = {};
     arr.forEach(row=>{
-      const suc = (row.SUCURSAL || row.sucursal || '').toString().trim();
-      const nom = (row.NOMBRECOMPLETO || row.nombre || row.NOMBRE || '').toString().trim();
-      const puesto = (row.PUESTO || row.puesto || row.AREA || '').toString().trim();
+      const suc = (row.SUCURSAL || '').toString().trim();
+const nombreSuc = (row.NOMBRE_SUC || '').toString().trim();
+const nom = (row.NOMBRE || '').toString().trim();
+const puesto = (row.PUESTO || '').toString().trim();
       if(!suc || !nom) return;
-      (personasPorSucursal[suc] ??= []).push({ nombre: nom, puesto, raw: row });
+      (personasPorSucursal[suc] ??= []).push({ sucursal: suc,
+        nombreSucursal: nombreSuc,
+        nombre: nom,
+        puesto: puesto,
+        usuario: row.USUARIO || '',
+        identificador: row.IDENTIFICADOR || '',
+        celular: row.CELULAR || '',
+        correo: row.CORREO || '',
+        correoTrabajo: row.CORREOTRABAJO || '',
+        raw: row });
     });
     const sel = document.getElementById('sucursalSelect');
     sel.innerHTML = `<option value="">Seleccione sucursal…</option>`;
