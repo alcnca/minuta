@@ -145,7 +145,7 @@
   /* ====== Firma del convocante ====== */
   .firma-convocante{
     margin:22px auto 8px;
-    width:320px;
+    width:min(720px, 92%);
     text-align:center;
     page-break-inside:avoid;
     break-inside:avoid;
@@ -169,6 +169,33 @@
     font-size:11px;
     margin-top:2px;
     text-transform:uppercase;
+  }
+
+  /* ====== Participantes invitados del convocante ====== */
+  .invitados-convocante{
+    margin-top:18px;
+    text-align:left;
+    border-top:1px solid #bbb;
+    padding-top:10px;
+  }
+  .invitados-titulo{
+    font-size:10px;
+    font-weight:bold;
+    text-align:center;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .lista-invitados{
+    margin-bottom:7px;
+    text-align:center;
+  }
+  .invitado-item{
+    font-size:10px;
+    line-height:1.2;
+    margin:2px 0;
+    text-transform:uppercase;
+    white-space:nowrap;
+    text-align:center;
   }
 
   /* ====== Impresión ====== */
@@ -231,6 +258,29 @@
     margin:0 !important;
     object-fit:contain !important;
     object-position:center bottom !important;
+  }
+
+  .invitados-convocante{
+    margin-top:4mm !important;
+    padding-top:2mm !important;
+    border-top:1px solid #000 !important;
+  }
+  .invitados-titulo{
+    font-size:8pt !important;
+    margin-bottom:2mm !important;
+  }
+  .lista-invitados{
+    text-align:center !important;
+  }
+  .invitado-item{
+    font-size:7.8pt !important;
+    line-height:1.1 !important;
+    margin:1px 0 !important;
+    white-space:nowrap !important;
+    text-align:center !important;
+  }
+  #btnAgregarInvitados{
+    display:none !important;
   }
 
   /* Controles que no deben salir en papel */
@@ -337,6 +387,8 @@
    * Evitamos que se parta, pero no la fijamos a una página.
    */
   .firma-convocante{
+    width:170mm !important;
+    max-width:100% !important;
     margin:5mm auto 2mm !important;
     page-break-inside:avoid !important;
     break-inside:avoid !important;
@@ -503,6 +555,12 @@
   <div class="firma-convocante-linea"></div>
   <div class="firma-convocante-nombre" id="firmaConvocanteNombre"></div>
   <div class="firma-convocante-puesto" id="firmaConvocantePuesto"></div>
+
+  <div class="invitados-convocante" id="invitadosConvocante">
+    <div class="invitados-titulo">PARTICIPANTES INVITADOS</div>
+    <div id="listaInvitadosConvoca" class="lista-invitados"></div>
+    <button type="button" class="btn secondary" id="btnAgregarInvitados">+ Agregar participantes</button>
+  </div>
 </div>
 
 <div class="actions">
@@ -513,6 +571,25 @@
 <footer class="footer">
   <img src="https://raw.githubusercontent.com/alcnca/minuta/main/piepagina.png" alt="Pie de página">
 </footer>
+
+<!-- Modal para participantes invitados -->
+<dialog id="modalInvitados">
+  <div class="modal-head">Agregar participantes invitados</div>
+  <div class="modal-body">
+    <div class="srch">
+      <input id="buscarInvitado" type="text" placeholder="Buscar por nombre, puesto o sucursal…">
+      <span class="pill" id="cuentaInvitados">0 seleccionados</span>
+    </div>
+    <div class="list head">
+      <div>Nombre</div><div>Puesto</div><div>Sucursal</div><div>Incluir</div>
+    </div>
+    <div id="contenedorInvitados"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn secondary" id="cerrarInvitados">Cancelar</button>
+    <button class="btn" id="confirmarInvitados">Agregar</button>
+  </div>
+</dialog>
 
 <!-- Modales existentes (asistentes / objetivo / asesores) -->
 <dialog id="modal">
@@ -563,6 +640,14 @@ const convocaInput = document.getElementById('convoca');
 const cambiarConvoca = document.getElementById('cambiarConvoca');
 const firmaConvocanteNombre = document.getElementById('firmaConvocanteNombre');
 const firmaConvocantePuesto = document.getElementById('firmaConvocantePuesto');
+const btnAgregarInvitados = document.getElementById('btnAgregarInvitados');
+const modalInvitados = document.getElementById('modalInvitados');
+const buscarInvitado = document.getElementById('buscarInvitado');
+const contenedorInvitados = document.getElementById('contenedorInvitados');
+const cuentaInvitados = document.getElementById('cuentaInvitados');
+const listaInvitadosConvoca = document.getElementById('listaInvitadosConvoca');
+let invitadosConvoca = [];
+let invitadosTmp = [];
 const convocaNombre = document.getElementById('convocaNombre');
 const convocaPuesto = document.getElementById('convocaPuesto');
 const objetivoView = document.getElementById('objetivoView');
@@ -620,6 +705,98 @@ function addMinutesToTimeStr(hhmm, minutes){ if(!hhmm) return ''; const [h,m]=hh
 horaInicio.addEventListener('change', ()=> { if(horaInicio.value){ horaFin.value = addMinutesToTimeStr(horaInicio.value, 60); }});
 
 /* ====== CONVOCA: datalist + vista completa ====== */
+function renderInvitadosDisponibles(q=''){
+  contenedorInvitados.innerHTML = '';
+  const txt = normalizarTextoConvoca(q);
+
+  const convocaNombre = normalizarTextoConvoca(firmaConvocanteNombre.textContent);
+  const seleccionadosParticipantes = new Set(
+    [...document.querySelectorAll('#tbody .nombre')]
+      .map(el=>normalizarTextoConvoca(el.textContent))
+      .filter(Boolean)
+  );
+
+  const disponibles = personas
+    .filter(p=>{
+      const clave=normalizarTextoConvoca(p.nombre);
+      if(!clave || clave===convocaNombre || seleccionadosParticipantes.has(clave)) return false;
+      const hay = `${p.nombre} ${p.puesto} ${p.sucursal} ${p.nombreSucursal}`.toUpperCase();
+      return !txt || normalizarTextoConvoca(hay).includes(txt);
+    })
+    .sort((a,b)=>{
+      const fa=(a.figura||'OTROS');
+      const fb=(b.figura||'OTROS');
+      const c=fa.localeCompare(fb,'es');
+      return c || a.nombre.localeCompare(b.nombre,'es');
+    });
+
+  if(!disponibles.length){
+    contenedorInvitados.innerHTML='<div style="padding:12px;text-align:center">NO HAY PERSONAS DISPONIBLES.</div>';
+    cuentaInvitados.textContent='0 seleccionados';
+    return;
+  }
+
+  disponibles.forEach((p,idx)=>{
+    const key=`${p.sucursal}|${p.usuario||p.nombre}|${idx}`;
+    const checked=invitadosTmp.some(x=>normalizarTextoConvoca(x.nombre)===normalizarTextoConvoca(p.nombre));
+
+    const row=document.createElement('div');
+    row.className='list';
+    row.innerHTML=`
+      <div>${p.nombre.toUpperCase()}</div>
+      <div>${(p.puesto||'').toUpperCase()}</div>
+      <div>${p.sucursal}${p.nombreSucursal ? ' - '+p.nombreSucursal.toUpperCase() : ''}</div>
+      <div style="text-align:center"><input type="checkbox" data-key="${key}" ${checked?'checked':''}></div>`;
+    row.querySelector('input')._persona=p;
+    contenedorInvitados.appendChild(row);
+  });
+
+  cuentaInvitados.textContent=`${invitadosTmp.length} seleccionados`;
+}
+
+function renderListaInvitados(){
+  listaInvitadosConvoca.innerHTML='';
+  invitadosConvoca.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='invitado-item';
+    const figuraInvitado = figuraEspecial(p.nombre, p.puesto) || p.puesto;
+    div.textContent = `${p.nombre.toUpperCase()} — ${figuraInvitado.toUpperCase()}`;
+    listaInvitadosConvoca.appendChild(div);
+  });
+  listaInvitadosConvoca.style.display=invitadosConvoca.length ? 'block' : 'none';
+}
+
+btnAgregarInvitados.addEventListener('click',()=>{
+  invitadosTmp=invitadosConvoca.map(x=>({...x}));
+  renderInvitadosDisponibles('');
+  try{ modalInvitados.showModal(); }catch{ modalInvitados.setAttribute('open','true'); }
+});
+
+buscarInvitado.addEventListener('input',e=>renderInvitadosDisponibles(e.target.value));
+
+contenedorInvitados.addEventListener('change',e=>{
+  const cb=e.target.closest('input[type="checkbox"]');
+  if(!cb || !cb._persona) return;
+
+  const p=cb._persona;
+  const idx=invitadosTmp.findIndex(x=>normalizarTextoConvoca(x.nombre)===normalizarTextoConvoca(p.nombre));
+
+  if(cb.checked && idx<0) invitadosTmp.push(p);
+  if(!cb.checked && idx>=0) invitadosTmp.splice(idx,1);
+
+  cuentaInvitados.textContent=`${invitadosTmp.length} seleccionados`;
+});
+
+document.getElementById('cerrarInvitados').addEventListener('click',()=>{
+  try{ modalInvitados.close(); }catch{ modalInvitados.removeAttribute('open'); }
+});
+
+document.getElementById('confirmarInvitados').addEventListener('click',()=>{
+  invitadosConvoca=invitadosTmp.map(x=>({...x}));
+  renderListaInvitados();
+  try{ modalInvitados.close(); }catch{ modalInvitados.removeAttribute('open'); }
+});
+
 function normalizarTextoConvoca(v){
   return String(v || '')
     .toUpperCase()
@@ -635,7 +812,10 @@ function esRecuperacionConvoca(puesto){
   return /RECUPERACION|COBRANZA/.test(p);
 }
 
-function figuraRecuperacion(puesto){
+function figuraRecuperacion(puesto, nombre=''){
+  const especial = figuraEspecial(nombre, puesto);
+  if(especial) return especial;
+
   const p = normalizarTextoConvoca(puesto);
 
   // La figura se conserva con el nombre funcional del puesto,
@@ -733,7 +913,7 @@ function cargarFigurasConvoca(){
 
   const figuras = [...new Set(
     obtenerConvocantesRecuperacion()
-      .map(p => figuraRecuperacion(p.puesto))
+      .map(p => figuraRecuperacion(p.puesto, p.nombre))
       .filter(Boolean)
   )];
 
@@ -782,7 +962,7 @@ function cargarNombresConvoca(){
   }
 
   const candidatos = obtenerConvocantesRecuperacion()
-    .filter(p => figuraRecuperacion(p.puesto) === convocaFigura.value)
+    .filter(p => figuraRecuperacion(p.puesto, p.nombre) === convocaFigura.value)
     .sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
 
   candidatos.forEach((p, idx)=>{
@@ -907,6 +1087,20 @@ function obtenerFigura(puesto){
   return p ? 'OTROS' : '';
 }
 
+function figuraEspecial(nombre, puesto){
+  const n = normalizarTextoConvoca(nombre);
+
+  // Excepción de estructura organizacional solicitada:
+  // CASTRO PEÑA DIEGO ERNESTO tiene puesto registrado como
+  // COORDINADOR DE RECUPERACIÓN, pero su figura real es
+  // GESTOR DE RECUPERACIÓN REGIONAL.
+  if(n === 'CASTRO PENA DIEGO ERNESTO'){
+    return 'GESTOR DE RECUPERACIÓN REGIONAL';
+  }
+
+  return null;
+}
+
 function normalizarPersona(row){
   const sucursal = String(row.SUCURSAL ?? '').trim();
   const nombreSucursal = String(row.NOMBRE_SUC ?? '').trim();
@@ -922,7 +1116,7 @@ function normalizarPersona(row){
     nombre,
     puesto,
     region,
-    figura: obtenerFigura(puesto),
+    figura: figuraEspecial(nombre, puesto) || obtenerFigura(puesto),
     usuario: String(row.USUARIO ?? '').trim(),
     identificador: String(row.IDENTIFICADOR ?? '').trim(),
     numSocio: String(row.NUM_SOCIO ?? '').trim(),
